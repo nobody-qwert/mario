@@ -204,13 +204,13 @@ function buildUnderground() {
   for (let c = 100; c <= 105; c++) map[10][c] = T.BRICK;
   for (let c = 115; c <= 120; c++) map[8][c] = T.BRICK;
 
-  // Question blocks
-  map[10][18] = T.QUESTION;
-  map[8][33] = T.QUESTION;
-  map[10][53] = T.QUESTION;
-  map[9][68] = T.QUESTION;
-  map[10][103] = T.QUESTION;
-  map[8][118] = T.QUESTION;
+  // Question blocks (above platforms, bumpable from below)
+  map[9][18] = T.QUESTION;
+  map[7][33] = T.QUESTION;
+  map[9][53] = T.QUESTION;
+  map[8][68] = T.QUESTION;
+  map[9][103] = T.QUESTION;
+  map[7][118] = T.QUESTION;
 
   // Elevator (ride to go back to surface)
   const elev = ELEVATORS.find(e => e.map === 1);

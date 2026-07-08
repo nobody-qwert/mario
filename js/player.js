@@ -63,6 +63,7 @@ class Player {
     if ((Input.once('Space') || Input.once('ArrowUp') || Input.once('KeyW')) && this.onGround) {
       this.vy = JUMP_FORCE;
       this.onGround = false;
+      if (typeof Sound !== 'undefined') Sound.play('jump');
     }
 
     // Variable jump height (release to fall faster)

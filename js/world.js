@@ -73,7 +73,7 @@ const ELEVATORS = [
  * Inspired by World 1-1
  */
 function buildLevel() {
-  const map = Array.from({ length: ROWS }, () => new Uint8Array(COLS));
+  const map = Array.from({ length: ROWS }, () => new Int8Array(COLS));
 
   // ── Ground (rows 13-14, with gaps) ──
   for (let c = 0; c < COLS; c++) {
@@ -107,30 +107,36 @@ function buildLevel() {
     }
   });
 
-  // ── Question blocks (floating) ──
-  // Row 9, various columns
-  map[9][16] = T.QUESTION;
-  map[9][21] = T.QUESTION;
-  map[9][22] = T.BRICK;
-  map[9][23] = T.QUESTION;
-  map[9][24] = T.BRICK;
-  map[9][25] = T.QUESTION;
-  map[9][26] = T.BRICK;
+  function placeBlocks(row, layout) {
+    layout.forEach(([col, tile]) => {
+      map[row][col] = tile;
+    });
+  }
 
-  // Higher question block
-  map[5][23] = T.QUESTION;
+  // ── Floating block lanes ──
+  // Row 9 is the normal ground-jump target: two empty rows above Mario's head.
+  placeBlocks(9, [
+    [16, T.QUESTION],
+    [21, T.QUESTION], [22, T.BRICK], [23, T.QUESTION],
+    [24, T.BRICK], [25, T.QUESTION], [26, T.BRICK],
+    [77, T.BRICK], [78, T.QUESTION], [79, T.BRICK],
+    [96, T.BRICK], [97, T.BRICK], [98, T.QUESTION], [99, T.BRICK],
+    [112, T.QUESTION], [113, T.BRICK], [114, T.QUESTION],
+  ]);
 
-  // More blocks later
-  map[9][77] = T.BRICK;
-  map[9][78] = T.QUESTION;
-  map[9][79] = T.BRICK;
+  // Higher blocks are placed above open space or lower block lanes, not at body level.
+  placeBlocks(5, [
+    [23, T.QUESTION],
+    [80, T.QUESTION], [81, T.QUESTION],
+    [97, T.QUESTION],
+    [113, T.BRICK],
+  ]);
 
-  map[5][80] = T.QUESTION;
-  map[5][81] = T.QUESTION;
-
-  // ── Brick platforms ──
-  map[9][80] = T.BRICK;
-  map[9][82] = T.BRICK;
+  // Short midair ledges give enemies/coins readable places without crowding Mario.
+  placeBlocks(8, [
+    [82, T.BRICK], [83, T.BRICK], [84, T.BRICK],
+    [145, T.BRICK], [146, T.QUESTION], [147, T.BRICK],
+  ]);
 
   // Staircase near end (columns 134-142)
   for (let step = 0; step < 4; step++) {
@@ -187,7 +193,7 @@ function buildLevel() {
  * Build the underground level map
  */
 function buildUnderground() {
-  const map = Array.from({ length: ROWS }, () => new Uint8Array(COLS));
+  const map = Array.from({ length: ROWS }, () => new Int8Array(COLS));
 
   // Ground (rows 13-14, with gaps)
   for (let c = 0; c < COLS; c++) {
@@ -204,13 +210,9 @@ function buildUnderground() {
   for (let c = 100; c <= 105; c++) map[10][c] = T.BRICK;
   for (let c = 115; c <= 120; c++) map[8][c] = T.BRICK;
 
-  // Question blocks (above platforms, bumpable from below)
-  map[9][18] = T.QUESTION;
-  map[7][33] = T.QUESTION;
-  map[9][53] = T.QUESTION;
-  map[8][68] = T.QUESTION;
-  map[9][103] = T.QUESTION;
-  map[7][118] = T.QUESTION;
+  // Question blocks stay in true air lanes, leaving headroom above platforms.
+  [[18, 7], [33, 5], [53, 7], [68, 6], [103, 7], [118, 5], [132, 9]]
+    .forEach(([col, row]) => { map[row][col] = T.QUESTION; });
 
   // Elevator (ride to go back to surface)
   const elev = ELEVATORS.find(e => e.map === 1);

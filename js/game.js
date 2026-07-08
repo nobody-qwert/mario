@@ -40,6 +40,112 @@ let warpTimer = 0;
 let warpTargetMap = 0;
 let warpTargetCol = 0;
 
+// ── Sound effects ────────────────────────────────────────
+const Sound = (() => {
+  let ctx;
+  let master;
+  let unlocked = false;
+
+  function ensure() {
+    if (!ctx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return null;
+      ctx = new AudioContext();
+      master = ctx.createGain();
+      master.gain.value = 0.22;
+      master.connect(ctx.destination);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  function tone(freq, duration, type, gain, slideTo) {
+    const audio = ensure();
+    if (!audio) return;
+    const now = audio.currentTime;
+    const osc = audio.createOscillator();
+    const amp = audio.createGain();
+    osc.type = type || 'square';
+    osc.frequency.setValueAtTime(freq, now);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, now + duration);
+    amp.gain.setValueAtTime(gain, now);
+    amp.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    osc.connect(amp);
+    amp.connect(master);
+    osc.start(now);
+    osc.stop(now + duration);
+  }
+
+  function noise(duration, gain) {
+    const audio = ensure();
+    if (!audio) return;
+    const now = audio.currentTime;
+    const buffer = audio.createBuffer(1, audio.sampleRate * duration, audio.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const source = audio.createBufferSource();
+    const amp = audio.createGain();
+    source.buffer = buffer;
+    amp.gain.setValueAtTime(gain, now);
+    amp.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    source.connect(amp);
+    amp.connect(master);
+    source.start(now);
+  }
+
+  return {
+    unlock() {
+      if (unlocked) return;
+      ensure();
+      unlocked = true;
+    },
+    play(name) {
+      switch (name) {
+        case 'start':
+          tone(523, 0.08, 'square', 0.12);
+          setTimeout(() => tone(784, 0.12, 'square', 0.12), 70);
+          break;
+        case 'jump':
+          tone(330, 0.16, 'square', 0.10, 660);
+          break;
+        case 'coin':
+          tone(988, 0.07, 'square', 0.10);
+          setTimeout(() => tone(1319, 0.08, 'square', 0.08), 45);
+          break;
+        case 'powerup':
+          [523, 659, 784, 1047].forEach((freq, i) => {
+            setTimeout(() => tone(freq, 0.08, 'triangle', 0.10), i * 55);
+          });
+          break;
+        case 'bump':
+          tone(180, 0.08, 'square', 0.10, 110);
+          break;
+        case 'break':
+          noise(0.12, 0.12);
+          tone(120, 0.09, 'sawtooth', 0.08, 70);
+          break;
+        case 'stomp':
+          tone(220, 0.08, 'square', 0.10, 110);
+          break;
+        case 'hurt':
+          tone(196, 0.20, 'sawtooth', 0.11, 80);
+          break;
+        case 'warp':
+          tone(440, 0.28, 'triangle', 0.10, 110);
+          break;
+        case 'win':
+          [523, 659, 784, 1047, 784, 1047].forEach((freq, i) => {
+            setTimeout(() => tone(freq, 0.12, 'square', 0.09), i * 90);
+          });
+          break;
+      }
+    }
+  };
+})();
+
+window.addEventListener('keydown', () => Sound.unlock(), { once: true });
+window.addEventListener('pointerdown', () => Sound.unlock(), { once: true });
+
 // ── Init / Reset ─────────────────────────────────────────
 function initGame() {
   currentMapIndex = 0;
@@ -107,10 +213,12 @@ function hitBlock(col, row, tile) {
       isMushroom ? 'mushroom' : 'coin',
       col * TILE, (row - 1) * TILE
     ));
+    Sound.play(isMushroom ? 'powerup' : 'coin');
     particles.push(new Particle(col * TILE + TILE / 2, row * TILE, isMushroom ? '🍄' : '+1', '#ffcc00'));
   } else if (tile === T.BRICK) {
     if (player.big) {
       setTile(map, col, row, T.AIR);
+      Sound.play('break');
       // Break effect
       for (let i = 0; i < 4; i++) {
         particles.push(new Particle(
@@ -122,6 +230,7 @@ function hitBlock(col, row, tile) {
       score += 10;
     } else {
       // Just bounce
+      Sound.play('bump');
       particles.push(new Particle(col * TILE + TILE / 2, row * TILE - 8, '🔨', '#fff'));
     }
   }
@@ -144,9 +253,11 @@ function checkEnemyCollision() {
       enemy.stomp();
       player.vy = JUMP_FORCE * 0.6; // bounce
       score += 100;
+      Sound.play('stomp');
       particles.push(new Particle(enemy.x + enemy.w / 2, enemy.y - 10, '+100', '#fff'));
     } else {
       // Player hit
+      Sound.play('hurt');
       player.hit();
       if (!player.alive) {
         state = 'DYING';
@@ -166,8 +277,10 @@ function checkCoinCollision() {
       coin.collected = true;
       coinCount++;
       score += 200;
+      Sound.play('coin');
       if (coinCount % 10 === 0) {
         lives++; // extra life every 10 coins
+        Sound.play('powerup');
         particles.push(new Particle(player.cx, player.y - 20, '1UP!', '#0f0'));
       }
       particles.push(new Particle(coin.x + coin.w / 2, coin.y - 10, '+200', '#ffcc00'));
@@ -186,10 +299,12 @@ function checkFloatingItemCollision() {
       if (item.type === 'coin') {
         coinCount++;
         score += 200;
+        Sound.play('coin');
         particles.push(new Particle(item.x + item.w / 2, item.y - 10, '+200', '#ffcc00'));
       } else if (item.type === 'mushroom') {
         player.grow();
         score += 1000;
+        Sound.play('powerup');
         particles.push(new Particle(item.x + item.w / 2, item.y - 10, '+1000', '#f80'));
       }
     }
@@ -205,6 +320,7 @@ function checkFlag() {
     state = 'WIN';
     winTimer = 180;
     score += Math.floor(timeLeft) * 50; // time bonus
+    Sound.play('win');
     particles.push(new Particle(player.cx, player.y - 20, '🎉 YOU WIN!', '#ff0'));
   }
 }
@@ -242,6 +358,7 @@ function transitionToMap(mapIndex, spawnCol) {
   warpTimer = 30;
   warpTargetMap = mapIndex;
   warpTargetCol = spawnCol;
+  Sound.play('warp');
   particles.push(new Particle(player.cx, player.y - 20,
     mapIndex === 1 ? '⬇️ Warp!' : '⬆️ Elevator!', '#ff0'));
 }
@@ -251,6 +368,8 @@ function update(dt) {
   switch (state) {
     case 'MENU':
       if (Input.once('Space') || Input.once('Enter')) {
+        Sound.unlock();
+        Sound.play('start');
         initGame();
         state = 'PLAYING';
         hideOverlay();
@@ -265,6 +384,7 @@ function update(dt) {
         timeLeft--;
         if (timeLeft <= 0) {
           player.die();
+          Sound.play('hurt');
           state = 'DYING';
           deathTimer = 90;
         }
@@ -350,6 +470,8 @@ function update(dt) {
 
     case 'GAME_OVER':
       if (Input.once('Space') || Input.once('Enter')) {
+        Sound.unlock();
+        Sound.play('start');
         initGame();
         state = 'PLAYING';
         hideOverlay();

@@ -98,6 +98,21 @@ class Enemy {
     this.y += this.vy;
     this.collideY(map);
 
+    // Reverse direction at edge of a gap (prevent self-defeat by falling)
+    if (this.vy > 0) {
+      // Enemy is falling — check if there is ground ahead in the current direction
+      const lookAheadCol = this.vx < 0
+        ? Math.floor(this.x / TILE)
+        : Math.floor((this.x + this.w) / TILE);
+      const feetRow = Math.floor((this.y + this.h) / TILE);
+      const tileAhead = getTile(map, lookAheadCol * TILE, feetRow * TILE);
+      if (!SOLID.has(tileAhead)) {
+        // No ground ahead — reverse
+        this.vx = -this.vx;
+        this.x += this.vx * 2; // step back
+      }
+    }
+
     // Fall into pit
     if (this.y > WORLD_H + 64) this.alive = false;
   }

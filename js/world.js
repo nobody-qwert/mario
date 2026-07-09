@@ -219,6 +219,12 @@ function buildUnderground() {
   if (elev) {
     map[elev.row][elev.col] = T.ELEVATOR;
     map[elev.row][elev.col + 1] = T.ELEVATOR;
+
+    // Stop the underground route at the elevator so players cannot skip it
+    // and continue into the unused low-level world.
+    for (let r = 0; r <= 12; r++) {
+      map[r][elev.col + 3] = T.HARD;
+    }
   }
 
   return map;

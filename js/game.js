@@ -7,37 +7,31 @@ const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const CANVAS_W = 800;
 const CANVAS_H = 480;
-canvas.width = CANVAS_W;
-canvas.height = CANVAS_H;
 
 // ── Responsive scaling ───────────────────────────────────
 const container = document.getElementById('game-container');
 
 function resizeCanvas() {
-  const isMobile = Input.isMobile;
-  if (isMobile) {
-    // Scale to fit the screen while keeping aspect ratio
-    const scale = Math.min(
-      window.innerWidth / CANVAS_W,
-      window.innerHeight / CANVAS_H
-    );
-    const w = CANVAS_W * scale;
-    const h = CANVAS_H * scale;
-    container.style.width = w + 'px';
-    container.style.height = h + 'px';
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
-  } else {
-    container.style.width = CANVAS_W + 'px';
-    container.style.height = CANVAS_H + 'px';
-    canvas.style.width = CANVAS_W + 'px';
-    canvas.style.height = CANVAS_H + 'px';
-  }
-}
+  const cssWidth = Input.isMobile ? window.innerWidth : CANVAS_W;
+  const cssHeight = Input.isMobile ? window.innerHeight : CANVAS_H;
+  const logicalHeight = CANVAS_H;
+  const logicalWidth = Input.isMobile
+    ? logicalHeight * cssWidth / cssHeight
+    : CANVAS_W;
+  const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
 
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', resizeCanvas);
+  container.style.width = cssWidth + 'px';
+  container.style.height = cssHeight + 'px';
+  canvas.style.width = cssWidth + 'px';
+  canvas.style.height = cssHeight + 'px';
+  canvas.width = Math.round(cssWidth * pixelRatio);
+  canvas.height = Math.round(cssHeight * pixelRatio);
+  ctx.setTransform(canvas.width / logicalWidth, 0, 0,
+    canvas.height / logicalHeight, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  Camera.resize(logicalWidth, logicalHeight);
+  if (typeof player !== 'undefined' && player) Camera.centerOn(player);
+}
 
 // ── Game state ───────────────────────────────────────────
 let state = 'MENU'; // MENU | PLAYING | PAUSED | GAME_OVER | WIN | DYING
@@ -60,6 +54,10 @@ let warpTimer = 0;
 let warpTargetMap = 0;
 let warpTargetCol = 0;
 
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', resizeCanvas);
+
 // ── Init / Reset ─────────────────────────────────────────
 function initGame() {
   currentMapIndex = 0;
@@ -75,8 +73,8 @@ function initGame() {
   timeLeft = 400;
   timeAccum = 0;
   flagReached = false;
-  Camera.x = 0;
   Camera.y = 0;
+  Camera.centerOn(player);
 }
 
 function resetLevel() {
@@ -93,7 +91,7 @@ function resetLevel() {
   timeLeft = 400;
   timeAccum = 0;
   flagReached = false;
-  Camera.x = 0;
+  Camera.centerOn(player);
 }
 
 // ── Flag check ───────────────────────────────────────────
@@ -220,7 +218,7 @@ function update(dt) {
           ? spawnCoinsUnderground().map(c => new Coin(c.x, c.y))
           : spawnCoins().map(c => new Coin(c.x, c.y));
         floatingItems = [];
-        Camera.x = Math.max(0, warpTargetCol * TILE - Camera.w * 0.35);
+        Camera.centerOn(player);
         particles.push(new Particle(player.cx, player.y - 20,
           currentMapIndex === 1 ? '⬇️ Underground!' : '⬆️ Surface!', '#ff0'));
         state = 'PLAYING';
@@ -229,8 +227,8 @@ function update(dt) {
 
     case 'DYING':
       deathTimer -= dt;
-      player.vy += GRAVITY;
-      player.y += player.vy;
+      player.vy += GRAVITY * dt;
+      player.y += player.vy * dt;
       if (deathTimer <= 0) {
         lives--;
         if (lives <= 0) {
@@ -296,13 +294,23 @@ function render() {
 }
 
 // ── Game loop ────────────────────────────────────────────
-let lastTime = 0;
+const STEP_MS = 1000 / 120;
+const STEP_DT = STEP_MS / (1000 / 60);
+const MAX_FRAME_MS = 100;
+let lastTime;
+let accumulator = 0;
 
 function gameLoop(timestamp) {
-  const dt = Math.min((timestamp - lastTime) / 16.67, 3); // normalize to ~60fps, cap at 3x
+  if (lastTime === undefined) lastTime = timestamp;
+  const elapsed = Math.min(timestamp - lastTime, MAX_FRAME_MS);
   lastTime = timestamp;
 
-  update(dt);
+  accumulator += elapsed;
+  while (accumulator >= STEP_MS) {
+    update(STEP_DT);
+    accumulator -= STEP_MS;
+  }
+
   render();
 
   requestAnimationFrame(gameLoop);

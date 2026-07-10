@@ -39,6 +39,16 @@ const Input = (() => {
     keys[e.code] = false;
   });
 
+  function setButton(id, pressed) {
+    const btn = touchButtons[id];
+    if (!btn || btn.pressed === pressed) return;
+    btn.pressed = pressed;
+    keys[btn.keyName] = pressed;
+    if (pressed) {
+      btn.justPressed = true;
+    }
+  }
+
   // ── Touch listeners (only active on mobile) ───────────
   if (isMobile) {
     const overlay = document.createElement('div');
@@ -55,7 +65,7 @@ const Input = (() => {
     // Tap anywhere triggers Space (for menu / game-over screens where overlay covers buttons)
     const gameContainer = document.getElementById('game-container');
     const menuOverlay = document.getElementById('overlay');
-    gameContainer.addEventListener('touchstart', (e) => {
+    gameContainer.addEventListener('pointerdown', (e) => {
       // Only fire when the menu/game-over overlay is visible
       if (menuOverlay.classList.contains('hidden')) return;
       const target = e.target;
@@ -65,63 +75,36 @@ const Input = (() => {
         }
         keys['Space'] = true;
       }
-    }, { passive: true });
-    gameContainer.addEventListener('touchend', (e) => {
+    });
+    gameContainer.addEventListener('pointerup', (e) => {
       if (menuOverlay.classList.contains('hidden')) return;
       const target = e.target;
       if (!target.dataset.btn) {
         keys['Space'] = false;
       }
-    }, { passive: true });
+    });
 
-    // Prevent default touch actions on the button overlay
-    overlay.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-    overlay.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
-    overlay.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
-    overlay.addEventListener('touchcancel', (e) => e.preventDefault(), { passive: false });
-
-    function handleTouch(e) {
-      // Determine which buttons each changed touch hit
-      for (const touch of e.changedTouches) {
-        const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (!el || !el.dataset.btn) continue;
-        const btn = touchButtons[el.dataset.btn];
-        if (!btn) continue;
-
-        if (e.type === 'touchstart' || e.type === 'touchcancel') {
-          if (e.type === 'touchstart' && !btn.pressed) {
-            btn.pressed = true;
-            btn.justPressed = true;
-            keys[btn.keyName] = true;
-          }
-        }
-      }
-
-      // After start/end/cancel, sync all buttons to current active touches
-      const activeIds = new Set();
-      for (const touch of e.touches) {
-        const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (el && el.dataset.btn && touchButtons[el.dataset.btn]) {
-          activeIds.add(el.dataset.btn);
-        }
-      }
-      for (const id in touchButtons) {
-        const btn = touchButtons[id];
-        const isActive = activeIds.has(id);
-        if (isActive && !btn.pressed) {
-          // Safety: finger slid onto button
-          btn.pressed = true;
-          keys[btn.keyName] = true;
-        } else if (!isActive && btn.pressed) {
-          btn.pressed = false;
-          keys[btn.keyName] = false;
-        }
-      }
-    }
-
-    overlay.addEventListener('touchstart', handleTouch, { passive: false });
-    overlay.addEventListener('touchend', handleTouch, { passive: false });
-    overlay.addEventListener('touchcancel', handleTouch, { passive: false });
+    // Pointer events update immediately and support two held buttons at once.
+    overlay.querySelectorAll('[data-btn]').forEach((button) => {
+      const id = button.dataset.btn;
+      button.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        button.setPointerCapture(e.pointerId);
+        button.classList.add('active');
+        setButton(id, true);
+      });
+      const release = (e) => {
+        e.preventDefault();
+        button.classList.remove('active');
+        setButton(id, false);
+      };
+      button.addEventListener('pointerup', release);
+      button.addEventListener('pointercancel', release);
+      button.addEventListener('lostpointercapture', () => {
+        button.classList.remove('active');
+        setButton(id, false);
+      });
+    });
   }
 
   // ── Public API ────────────────────────────────────────

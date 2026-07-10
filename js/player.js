@@ -17,6 +17,8 @@ class Player {
     this.big = false;    // grew from mushroom
     this.runFrame = 0;
     this.runTimer = 0;
+    this.jumpBuffer = 0;
+    this.coyoteTime = 0;
   }
 
   get cx() { return this.x + this.w / 2; }
@@ -41,7 +43,9 @@ class Player {
 
     // Acceleration / deceleration
     if (targetVx !== 0) {
-      this.vx += (targetVx - this.vx) * 0.55 * dt;
+      // Exponential easing preserves the same acceleration at any fixed-step rate.
+      const acceleration = 1 - Math.pow(0.45, dt);
+      this.vx += (targetVx - this.vx) * acceleration;
       this.runTimer += dt;
       if (this.runTimer > 6) {
         this.runTimer = 0;
@@ -54,9 +58,16 @@ class Player {
     }
 
     // ── Jump ──
-    if ((Input.once('Space') || Input.once('ArrowUp') || Input.once('KeyW')) && this.onGround) {
+    this.jumpBuffer = Math.max(0, this.jumpBuffer - dt);
+    this.coyoteTime = this.onGround ? 6 : Math.max(0, this.coyoteTime - dt);
+    if (Input.once('Space') || Input.once('ArrowUp') || Input.once('KeyW')) {
+      this.jumpBuffer = 6;
+    }
+    if (this.jumpBuffer > 0 && this.coyoteTime > 0) {
       this.vy = JUMP_FORCE;
       this.onGround = false;
+      this.jumpBuffer = 0;
+      this.coyoteTime = 0;
       if (typeof Sound !== 'undefined') Sound.play('jump');
     }
 

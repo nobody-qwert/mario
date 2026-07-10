@@ -31,15 +31,15 @@ class Enemy {
     }
 
     // Gravity
-    this.vy += 0.5;
+    this.vy += 0.5 * dt;
     if (this.vy > 8) this.vy = 8;
 
     // Move X
-    this.x += this.vx;
+    this.x += this.vx * dt;
     this.collideX(map);
 
     // Move Y
-    this.y += this.vy;
+    this.y += this.vy * dt;
     this.collideY(map);
 
     // Reverse direction at edge of a gap (prevent self-defeat by falling)
@@ -53,7 +53,7 @@ class Enemy {
       if (!SOLID.has(tileAhead)) {
         // No ground ahead — reverse
         this.vx = -this.vx;
-        this.x += this.vx * 2; // step back
+        this.x += this.vx * 2 * dt; // step back
       }
     }
 
@@ -168,8 +168,8 @@ class FloatingItem {
   }
 
   update(dt) {
-    this.vy += 0.3;
-    this.y += this.vy;
+    this.vy += 0.3 * dt;
+    this.y += this.vy * dt;
     this.timer += dt;
     if (this.timer > 60) this.alive = false;
   }
@@ -199,7 +199,7 @@ class Particle {
   }
 
   update(dt) {
-    this.y += this.vy;
+    this.y += this.vy * dt;
     this.life -= dt;
     if (this.life <= 0) this.alive = false;
   }
@@ -216,7 +216,6 @@ class Particle {
     ctx.globalAlpha = 1;
   }
 }
-
 
 
 

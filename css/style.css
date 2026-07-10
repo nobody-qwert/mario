@@ -29,6 +29,7 @@ canvas {
   width: 800px;
   height: 480px;
   image-rendering: pixelated;
+  touch-action: none;
 }
 
 /* ── HUD ────────────────────────────────────────────────── */
@@ -113,6 +114,7 @@ canvas {
   font-weight: bold;
   outline: none;
   cursor: pointer;
+  touch-action: none;
 }
 
 #touch-controls button:active,
@@ -158,22 +160,54 @@ canvas {
 
 /* ── Landscape touch controls ─────────────────────────── */
 @media (orientation: landscape) {
+  #touch-controls {
+    --edge-gap: max(12px, env(safe-area-inset-left));
+  }
+
   .touch-dpad {
-    bottom: 8px;
-    left: 8px;
+    bottom: auto;
+    left: var(--edge-gap);
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   .touch-dpad button {
-    width: 48px;
-    height: 48px;
-    font-size: 22px;
+    width: clamp(52px, 8.5vw, 72px);
+    height: clamp(52px, 8.5vw, 72px);
+    font-size: 24px;
   }
 
   .touch-jump {
-    bottom: 8px;
-    right: 8px;
-    width: 60px;
-    height: 60px;
-    font-size: 14px;
+    bottom: auto;
+    right: max(12px, env(safe-area-inset-right));
+    top: 50%;
+    transform: translateY(-50%);
+    width: clamp(68px, 10vw, 88px);
+    height: clamp(68px, 10vw, 88px);
+    font-size: 15px;
+  }
+}
+
+/* Touch devices use the complete screen instead of letterboxing an 800×480 box. */
+@media (hover: none), (pointer: coarse) {
+  #game-container {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+@media (hover: none) and (orientation: landscape),
+       (pointer: coarse) and (orientation: landscape) {
+  #hud {
+    padding-left: max(124px, calc(env(safe-area-inset-left) + 112px));
+    padding-right: max(104px, calc(env(safe-area-inset-right) + 92px));
   }
 }

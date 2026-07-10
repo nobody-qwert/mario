@@ -175,6 +175,14 @@ function update(dt) {
 
       // Update player (returns block hit from below)
       const hitResult = player.update(map, dt);
+
+      // Pit fall / any death during update — transition to DYING
+      if (!player.alive && state === 'PLAYING') {
+        Sound.play('hurt');
+        state = 'DYING';
+        deathTimer = 90;
+      }
+
       if (hitResult) {
         hitBlock(hitResult.col, hitResult.row, hitResult.tile);
       }

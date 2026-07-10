@@ -37,6 +37,7 @@ function resizeCanvas() {
 
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', resizeCanvas);
 
 // ── Game state ───────────────────────────────────────────
 let state = 'MENU'; // MENU | PLAYING | PAUSED | GAME_OVER | WIN | DYING

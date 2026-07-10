@@ -155,3 +155,25 @@ canvas {
 @media (min-width: 1024px) and (hover: hover) {
   #touch-controls { display: none; }
 }
+
+/* ── Landscape touch controls ─────────────────────────── */
+@media (orientation: landscape) {
+  .touch-dpad {
+    bottom: 8px;
+    left: 8px;
+  }
+
+  .touch-dpad button {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+  }
+
+  .touch-jump {
+    bottom: 8px;
+    right: 8px;
+    width: 60px;
+    height: 60px;
+    font-size: 14px;
+  }
+}

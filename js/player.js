@@ -41,14 +41,14 @@ class Player {
 
     // Acceleration / deceleration
     if (targetVx !== 0) {
-      this.vx += (targetVx - this.vx) * 0.3 * dt;
+      this.vx += (targetVx - this.vx) * 0.55 * dt;
       this.runTimer += dt;
       if (this.runTimer > 6) {
         this.runTimer = 0;
         this.runFrame = (this.runFrame + 1) % 2;
       }
     } else {
-      this.vx *= Math.pow(0.75, dt);
+      this.vx *= Math.pow(0.55, dt);
       if (Math.abs(this.vx) < 0.1) this.vx = 0;
       this.runFrame = 0;
     }

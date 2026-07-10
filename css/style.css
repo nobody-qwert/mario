@@ -10,6 +10,8 @@ html, body {
   overflow: hidden;
   font-family: 'Courier New', monospace;
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 #game-container {
@@ -19,6 +21,7 @@ html, body {
   border: 3px solid #333;
   border-radius: 4px;
   overflow: hidden;
+  touch-action: none;
 }
 
 canvas {
@@ -89,4 +92,66 @@ canvas {
 
 @keyframes blink {
   50% { opacity: 0; }
+}
+
+/* ── Touch Controls (mobile only) ─────────────────────── */
+#touch-controls {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none; /* let taps pass through to canvas where buttons aren't */
+}
+
+#touch-controls button {
+  pointer-events: auto; /* re-enable pointer events on buttons */
+  -webkit-tap-highlight-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: inherit;
+  font-weight: bold;
+  outline: none;
+  cursor: pointer;
+}
+
+#touch-controls button:active,
+#touch-controls button.active {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* D-pad (bottom-left) */
+.touch-dpad {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.touch-dpad button {
+  width: 64px;
+  height: 64px;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Jump button (bottom-right) */
+.touch-jump {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 80px;
+  height: 80px;
+  font-size: 18px;
+  border-radius: 50%;
+  border-width: 3px;
+}
+
+/* Hide touch controls on desktop */
+@media (min-width: 1024px) and (hover: hover) {
+  #touch-controls { display: none; }
 }

@@ -5,8 +5,38 @@
 // ── Canvas setup ─────────────────────────────────────────
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 800;
-canvas.height = 480;
+const CANVAS_W = 800;
+const CANVAS_H = 480;
+canvas.width = CANVAS_W;
+canvas.height = CANVAS_H;
+
+// ── Responsive scaling ───────────────────────────────────
+const container = document.getElementById('game-container');
+
+function resizeCanvas() {
+  const isMobile = Input.isMobile;
+  if (isMobile) {
+    // Scale to fit the screen while keeping aspect ratio
+    const scale = Math.min(
+      window.innerWidth / CANVAS_W,
+      window.innerHeight / CANVAS_H
+    );
+    const w = CANVAS_W * scale;
+    const h = CANVAS_H * scale;
+    container.style.width = w + 'px';
+    container.style.height = h + 'px';
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+  } else {
+    container.style.width = CANVAS_W + 'px';
+    container.style.height = CANVAS_H + 'px';
+    canvas.style.width = CANVAS_W + 'px';
+    canvas.style.height = CANVAS_H + 'px';
+  }
+}
+
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
 // ── HUD elements ─────────────────────────────────────────
 const elScore = document.getElementById('score');
@@ -450,7 +480,8 @@ function update(dt) {
         lives--;
         if (lives <= 0) {
           state = 'GAME_OVER';
-          showOverlay('💀 GAME OVER', `Final Score: ${score}`, 'Press SPACE to restart');
+          showOverlay('💀 GAME OVER', `Final Score: ${score}`,
+            Input.isMobile ? 'Tap JUMP to restart' : 'Press SPACE to restart');
         } else {
           resetLevel();
           state = 'PLAYING';
@@ -464,7 +495,8 @@ function update(dt) {
       particles = particles.filter(p => p.alive);
       if (winTimer <= 0) {
         state = 'GAME_OVER'; // reuse for "level complete" screen
-        showOverlay('🎉 LEVEL COMPLETE!', `Score: ${score}  Coins: ${coinCount}`, 'Press SPACE to play again');
+        showOverlay('🎉 LEVEL COMPLETE!', `Score: ${score}  Coins: ${coinCount}`,
+          Input.isMobile ? 'Tap JUMP to play again' : 'Press SPACE to play again');
       }
       break;
 
@@ -522,5 +554,8 @@ function gameLoop(timestamp) {
 }
 
 // ── Start ────────────────────────────────────────────────
-showOverlay('🍄 SUPER MARIO EMOJI', 'Arrow Keys / WASD to move, Space to jump\nTouch blue pipes 🟦 to warp, ride elevators 🛗 to return', 'Press SPACE to start');
+const startHint = Input.isMobile
+  ? 'Tap JUMP to start'
+  : 'Press SPACE to start';
+showOverlay('🍄 SUPER MARIO EMOJI', 'Touch blue pipes 🟦 to warp, ride elevators 🛗 to return', startHint);
 requestAnimationFrame(gameLoop);

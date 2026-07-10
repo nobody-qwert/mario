@@ -41,14 +41,14 @@ class Player {
 
     // Acceleration / deceleration
     if (targetVx !== 0) {
-      this.vx += (targetVx - this.vx) * 0.3;
+      this.vx += (targetVx - this.vx) * 0.3 * dt;
       this.runTimer += dt;
       if (this.runTimer > 6) {
         this.runTimer = 0;
         this.runFrame = (this.runFrame + 1) % 2;
       }
     } else {
-      this.vx *= 0.75;
+      this.vx *= Math.pow(0.75, dt);
       if (Math.abs(this.vx) < 0.1) this.vx = 0;
       this.runFrame = 0;
     }
@@ -62,22 +62,22 @@ class Player {
 
     // Variable jump height (release to fall faster)
     if (!Input.get('Space') && !Input.get('ArrowUp') && !Input.get('KeyW') && this.vy < -3) {
-      this.vy *= 0.9;
+      this.vy *= Math.pow(0.9, dt);
     }
 
     // ── Gravity ──
-    this.vy += GRAVITY;
+    this.vy += GRAVITY * dt;
     if (this.vy > MAX_FALL) this.vy = MAX_FALL;
 
     // ── Move X + collide ──
-    this.x += this.vx;
+    this.x += this.vx * dt;
     this.collideX(map);
 
     // Clamp to world left edge
     if (this.x < 0) this.x = 0;
 
     // ── Move Y + collide ──
-    this.y += this.vy;
+    this.y += this.vy * dt;
     this.onGround = false;
     const hit = this.collideY(map);
 

@@ -1,0 +1,37 @@
+{
+  "runId": "4e3f0d5a",
+  "agent": "coding-worker",
+  "task": "TASK_ID: refactor-06-extract-constants\n\nGOAL:\nExtract shared constants (TILE, COLS, ROWS, WORLD_W, WORLD_H, T, TILE_EMOJI, SOLID, TRANSITION, MAP_INFO, WARP_PIPES, ELEVATORS, GRAVITY, MAX_FALL, MOVE_SPEED, JUMP_FORCE, GROUND_ROW) into a new js/constants.js module.\n\nACCEPTANCE_CRITERIA:\n- js/constants.js exists and contains all listed constants\n- world.js no longer defines TILE, COLS, ROWS, WORLD_W, WORLD_H, T, TILE_EMOJI, SOLID, TRANSITION, MAP_INFO, WARP_PIPES, ELEVATORS\n- player.js no longer defines GRAVITY, MAX_FALL, MOVE_SPEED, JUMP_FORCE, GROUND_ROW\n- constants.js loads FIRST in index.html (before all other scripts)\n- All references to these constants across all files still work via globals\n\nALLOWED_PATHS:\n- js/constants.js (create)\n- js/world.js (remove constant definitions — keep buildLevel, buildUnderground, loadMap, getTile, setTile)\n- js/player.js (remove GRAVITY, MAX_FALL, MOVE_SPEED, JUMP_FORCE, GROUND_ROW)\n- index.html (move constants.js to first script tag)\n\nENTRY_SYMBOLS:\n- `const TILE = 32` in world.js\n- `const COLS = 200` in world.js\n- `const GRAVITY = 0.6` in player.js\n- `const T = { AIR: 0, ... }` in world.js\n- `const SOLID = new Set(...)` in world.js\n- `const TILE_EMOJI = { ... }` in world.js\n- `const MAP_INFO = [...]` in world.js\n- `const WARP_PIPES = [...]` in world.js\n- `const ELEVATORS = [...]` in world.js\n\nACCEPTANCE_COMMANDS:\n- grep -c \"const TILE\" js/constants.js (should be 1)\n- grep \"const TILE\" js/world.js | wc -l (should be 0)\n- grep -c \"const T = \" js/constants.js (should be 1)\n- grep \"const T = \" js/world.js | wc -l (should be 0)\n- grep -c \"const SOLID\" js/constants.js (should be 1)\n- grep \"const SOLID\" js/world.js | wc -l (should be 0)\n- grep -c \"const GRAVITY\" js/constants.js (should be 1)\n- grep \"const GRAVITY\" js/player.js | wc -l (should be 0)\n- grep \"constants.js\" index.html (must exist as first script)\n- head -30 index.html | grep \"script\" | head -1 (should be constants.js)\n\nCONSTRAINTS:\n- Do not change any constant values\n- Keep all constants as globals (no module wrapper)\n- world.js must KEEP: buildLevel(), buildUnderground(), loadMap(), getTile(), setTile()\n- Do NOT move ENEMY_TYPES or spawn functions — those are in entities.js and handled in task 7\n- Do not modify game.js, entities.js, collision.js, sound.js, hud.js, camera.js, or render.js\n\nKNOWN_FACTS:\n- TILE used in: player.js (constructor), entities.js (Enemy, Coin, FloatingItem), collision.js (hitBlock), game.js (resizeCanvas, initGame, checkTransition)\n- SOLID used in: player.js (collideX, collideY), entities.js (Enemy.collideX, collideY), world.js (getTile not directly but used in collision), collision.js\n- T used in: world.js (buildLevel, buildUnderground), collision.js (hitBlock), player.js (indirectly via SOLID)\n- GRAVITY used in: player.js (update)\n- Script load order currently: input.js, camera.js, world.js, entities.js, collision.js, sound.js, player.js, hud.js, render.js, game.js\n\nKNOWN_FAILED_APPROACHES:\n- none\n\nOUTPUT_CONTRACT:\nReturn status, concise summary, files changed, checks, remaining risk, and a failure fingerprint when incomplete.",
+  "exitCode": 0,
+  "usage": {
+    "input": 108977,
+    "output": 5564,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "cost": 0,
+    "turns": 9
+  },
+  "model": "lmstudio/qwen3.6-27b@q4_k_m",
+  "attemptedModels": [
+    "lmstudio/qwen3.6-27b@q4_k_m"
+  ],
+  "modelAttempts": [
+    {
+      "model": "lmstudio/qwen3.6-27b@q4_k_m",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 108977,
+        "output": 5564,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 9
+      }
+    }
+  ],
+  "durationMs": 185786,
+  "toolCount": 10,
+  "transcriptPath": "/home/sandor/proj/pi_test/.pi-subagents/artifacts/4e3f0d5a_coding-worker_0_transcript.jsonl",
+  "timestamp": 1783674305835
+}

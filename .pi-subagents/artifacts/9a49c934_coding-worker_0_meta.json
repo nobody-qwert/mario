@@ -1,0 +1,37 @@
+{
+  "runId": "9a49c934",
+  "agent": "coding-worker",
+  "task": "TASK_ID: refactor-07-extract-levels\n\nGOAL:\nExtract all level-design data (spawn functions, ENEMY_TYPES, WARP_PIPES, ELEVATORS, MAP_INFO) from entities.js and constants.js into a new js/levels.js module.\n\nACCEPTANCE_CRITERIA:\n- js/levels.js exists and contains: ENEMY_TYPES, spawnEnemies(), spawnCoins(), spawnEnemiesUnderground(), spawnCoinsUnderground()\n- entities.js no longer contains ENEMY_TYPES or the 4 spawn functions\n- levels.js loads after constants.js (which has TILE, T, etc.) but before entities.js in index.html\n- All spawn function calls in game.js still work (they reference spawnEnemies, spawnCoins, etc. as globals)\n- Enemy class in entities.js still references ENEMY_TYPES via global\n\nALLOWED_PATHS:\n- js/levels.js (create)\n- js/entities.js (remove ENEMY_TYPES and 4 spawn functions)\n- js/constants.js (remove WARP_PIPES, ELEVATORS, MAP_INFO — move to levels.js)\n- index.html (add levels.js script tag)\n\nENTRY_SYMBOLS:\n- `const ENEMY_TYPES = { GOOMBA: ..., KOOPA: ... }` in entities.js\n- `function spawnEnemies()` in entities.js\n- `function spawnCoins()` in entities.js\n- `function spawnEnemiesUnderground()` in entities.js\n- `function spawnCoinsUnderground()` in entities.js\n- `const WARP_PIPES` in constants.js (moved from world.js in task 6)\n- `const ELEVATORS` in constants.js\n- `const MAP_INFO` in constants.js\n\nACCEPTANCE_COMMANDS:\n- grep -c \"const ENEMY_TYPES\" js/levels.js (should be 1)\n- grep \"const ENEMY_TYPES\" js/entities.js | wc -l (should be 0)\n- grep -c \"function spawnEnemies\" js/levels.js (should be 2 — spawnEnemies + spawnEnemiesUnderground)\n- grep \"function spawnEnemies\" js/entities.js | wc -l (should be 0)\n- grep -c \"function spawnCoins\" js/levels.js (should be 2 — spawnCoins + spawnCoinsUnderground)\n- grep \"function spawnCoins\" js/entities.js | wc -l (should be 0)\n- grep -c \"const WARP_PIPES\" js/levels.js (should be 1)\n- grep \"const WARP_PIPES\" js/constants.js | wc -l (should be 0)\n- grep \"levels.js\" index.html (must exist, before entities.js)\n- grep \"spawnEnemies\\|spawnCoins\" js/game.js (should find calls only)\n\nCONSTRAINTS:\n- Do not change function signatures or data contents\n- ENEMY_TYPES is used by Enemy class constructor in entities.js — must remain a global\n- WARP_PIPES and ELEVATORS are used by checkTransition() in game.js — must remain globals\n- MAP_INFO is used by drawSky() in render.js — must remain a global\n- Keep Enemy, Coin, FloatingItem, Particle classes in entities.js\n- Do not modify game.js, collision.js, sound.js, hud.js, camera.js, render.js, player.js, or world.js\n\nKNOWN_FACTS:\n- spawnEnemies returns array of {type, x, y} objects using TILE constant\n- ENEMY_TYPES is read by Enemy constructor: `const def = ENEMY_TYPES[type]`\n- WARP_PIPES and ELEVATORS were moved to constants.js in task 6; now moving to levels.js since they are level design data, not engine constants\n- MAP_INFO was also moved to constants.js in task 6; it describes map themes so belongs in levels.js\n- Script load order: constants.js, input.js, camera.js, world.js, entities.js, collision.js, sound.js, player.js, hud.js, render.js, game.js\n\nKNOWN_FAILED_APPROACHES:\n- none\n\nOUTPUT_CONTRACT:\nReturn status, concise summary, files changed, checks, remaining risk, and a failure fingerprint when incomplete.",
+  "exitCode": 0,
+  "usage": {
+    "input": 114444,
+    "output": 7001,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "cost": 0,
+    "turns": 10
+  },
+  "model": "lmstudio/qwen3.6-27b@q4_k_m",
+  "attemptedModels": [
+    "lmstudio/qwen3.6-27b@q4_k_m"
+  ],
+  "modelAttempts": [
+    {
+      "model": "lmstudio/qwen3.6-27b@q4_k_m",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 114444,
+        "output": 7001,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 10
+      }
+    }
+  ],
+  "durationMs": 220072,
+  "toolCount": 15,
+  "transcriptPath": "/home/sandor/proj/pi_test/.pi-subagents/artifacts/9a49c934_coding-worker_0_transcript.jsonl",
+  "timestamp": 1783674575952
+}

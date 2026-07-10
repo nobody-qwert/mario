@@ -1,0 +1,37 @@
+{
+  "runId": "45449b0f",
+  "agent": "coding-worker",
+  "task": "TASK_ID: refactor-04-extract-camera\n\nGOAL:\nExtract the Camera object from world.js into a new js/camera.js module.\n\nACCEPTANCE_CRITERIA:\n- js/camera.js exists and contains the Camera object (x, y, w, h, follow method)\n- world.js no longer contains the Camera object definition\n- camera.js loads before world.js in index.html (so Camera is available when world.js and other modules reference it)\n- All existing Camera.x, Camera.y, Camera.w, Camera.h, Camera.follow() references across all files still work\n\nALLOWED_PATHS:\n- js/camera.js (create)\n- js/world.js (remove Camera object)\n- index.html (add camera.js script tag)\n\nENTRY_SYMBOLS:\n- `const Camera = { x: 0, y: 0, w: 800, h: 480, follow(player) { ... } }` in world.js\n\nACCEPTANCE_COMMANDS:\n- grep -c \"const Camera\" js/camera.js (should be 1)\n- grep \"const Camera\" js/world.js | wc -l (should be 0)\n- grep \"camera.js\" index.html (must exist)\n- grep -rn \"Camera\\.\" js/ --include=\"*.js\" | wc -l (should be >0 — references still exist in game.js, player.js, entities.js, world.js render functions)\n\nCONSTRAINTS:\n- Do not change the Camera API (x, y, w, h, follow)\n- Do not modify any file other than the three listed\n- Keep Camera as a global (no module wrapper needed)\n\nKNOWN_FACTS:\n- Camera is referenced in: game.js (initGame, resetLevel, WARPING state), player.js (draw), entities.js (Enemy.draw, Coin.draw, FloatingItem.draw, Particle.draw), world.js (drawWorld)\n- Camera uses Camera.w (800) which equals CANVAS_W from game.js, but Camera currently hardcodes 800\n- Script load order: input.js, world.js, entities.js, collision.js, sound.js, hud.js, player.js, game.js\n\nKNOWN_FAILED_APPROACHES:\n- none\n\nOUTPUT_CONTRACT:\nReturn status, concise summary, files changed, checks, remaining risk, and a failure fingerprint when incomplete.",
+  "exitCode": 0,
+  "usage": {
+    "input": 67756,
+    "output": 2506,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "cost": 0,
+    "turns": 8
+  },
+  "model": "lmstudio/qwen3.6-27b@q4_k_m",
+  "attemptedModels": [
+    "lmstudio/qwen3.6-27b@q4_k_m"
+  ],
+  "modelAttempts": [
+    {
+      "model": "lmstudio/qwen3.6-27b@q4_k_m",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 67756,
+        "output": 2506,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 8
+      }
+    }
+  ],
+  "durationMs": 78375,
+  "toolCount": 15,
+  "transcriptPath": "/home/sandor/proj/pi_test/.pi-subagents/artifacts/45449b0f_coding-worker_0_transcript.jsonl",
+  "timestamp": 1783673938799
+}

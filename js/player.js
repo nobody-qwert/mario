@@ -2,12 +2,6 @@
  * player.js — Mario: movement, jumping, gravity, tile collision
  */
 
-const GRAVITY = 0.6;
-const MAX_FALL = 12;
-const MOVE_SPEED = 3.2;
-const JUMP_FORCE = -13.5;
-const GROUND_ROW = 13;
-
 class Player {
   constructor(x, y) {
     this.x = x;

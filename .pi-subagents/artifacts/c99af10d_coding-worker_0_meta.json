@@ -1,0 +1,37 @@
+{
+  "runId": "c99af10d",
+  "agent": "coding-worker",
+  "task": "TASK_ID: refactor-01-extract-sound\n\nGOAL:\nExtract the Sound IIFE module from game.js into a new js/sound.js so game.js no longer owns audio synthesis.\n\nACCEPTANCE_CRITERIA:\n- js/sound.js exists and contains the full Sound IIFE (ensure, tone, noise, play, unlock)\n- game.js no longer contains the Sound IIFE or the window event listeners that call Sound.unlock()\n- js/sound.js registers its own window event listeners for unlock (keydown + pointerdown, once each)\n- The game still loads correctly: sound.js must load BEFORE game.js and player.js in index.html\n- player.js's `typeof Sound !== 'undefined'` check still works (Sound is a global)\n\nALLOWED_PATHS:\n- js/game.js (remove Sound IIFE + unlock listeners)\n- js/sound.js (create)\n- index.html (add sound.js script tag before game.js and player.js)\n\nENTRY_SYMBOLS:\n- `Sound` IIFE in game.js (lines ~70-160)\n- `window.addEventListener('keydown', ...)` and `window.addEventListener('pointerdown', ...)` unlock lines in game.js\n- Script tags in index.html\n\nACCEPTANCE_COMMANDS:\n- No build/lint commands exist. Verify by: (a) grep -c \"Sound\" js/sound.js (should be >5), (b) grep \"Sound\" js/game.js should show zero matches for the IIFE body (only OK if game.js still calls Sound.play()), (c) grep \"sound.js\" index.html (must exist), (d) check script load order in index.html has sound.js before player.js and game.js\n\nCONSTRAINTS:\n- Do not change the Sound API (unlock, play) — it must remain identical\n- Do not modify player.js or any other file except the three listed\n- Preserve the Sound IIFE's internal behavior exactly (same tone/noise parameters, same switch cases)\n\nKNOWN_FACTS:\n- project is a pure browser game with no build system or tests\n- index.html loads scripts in order: input.js, world.js, entities.js, player.js, game.js\n- player.js references Sound via `typeof Sound !== 'undefined'` guard\n- Sound IIFE in game.js spans from `const Sound = (() => {` to the closing `})();` plus two window event listeners\n\nKNOWN_FAILED_APPROACHES:\n- none\n\nOUTPUT_CONTRACT:\nReturn status, concise summary, files changed, checks, remaining risk, and a failure fingerprint when incomplete.",
+  "exitCode": 0,
+  "usage": {
+    "input": 107616,
+    "output": 5365,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "cost": 0,
+    "turns": 8
+  },
+  "model": "lmstudio/qwen3.6-27b@q4_k_m",
+  "attemptedModels": [
+    "lmstudio/qwen3.6-27b@q4_k_m"
+  ],
+  "modelAttempts": [
+    {
+      "model": "lmstudio/qwen3.6-27b@q4_k_m",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 107616,
+        "output": 5365,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 8
+      }
+    }
+  ],
+  "durationMs": 174432,
+  "toolCount": 15,
+  "transcriptPath": "/home/sandor/proj/pi_test/.pi-subagents/artifacts/c99af10d_coding-worker_0_transcript.jsonl",
+  "timestamp": 1783673488156
+}

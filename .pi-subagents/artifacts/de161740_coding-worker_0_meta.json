@@ -1,0 +1,37 @@
+{
+  "runId": "de161740",
+  "agent": "coding-worker",
+  "task": "TASK_ID: refactor-02-extract-collision\n\nGOAL:\nExtract all collision-checking functions from game.js and the aabb helper from entities.js into a new js/collision.js module.\n\nACCEPTANCE_CRITERIA:\n- js/collision.js exists and contains: aabb(), checkEnemyCollision(), checkCoinCollision(), checkFloatingItemCollision(), hitBlock()\n- game.js no longer contains the bodies of those 5 functions (only calls to them remain)\n- entities.js no longer contains the aabb() function\n- collision.js loads before game.js and entities.js in index.html\n- All functions reference their dependencies (player, enemies, coins, floatingItems, score, coinCount, lives, particles, Sound, JUMP_FORCE, TILE, T, SOLID, setTile, map) via globals — same as before\n\nALLOWED_PATHS:\n- js/collision.js (create)\n- js/game.js (remove 5 function bodies)\n- js/entities.js (remove aabb function)\n- index.html (add collision.js script tag)\n\nENTRY_SYMBOLS:\n- `function aabb(a, b)` in entities.js (bottom of file)\n- `function checkEnemyCollision()` in game.js\n- `function checkCoinCollision()` in game.js\n- `function checkFloatingItemCollision()` in game.js\n- `function hitBlock(col, row, tile)` in game.js\n- `function checkFlag()` in game.js — DO NOT MOVE this one, it is game-state logic not pure collision\n\nACCEPTANCE_COMMANDS:\n- grep -c \"function aabb\" js/collision.js (should be 1)\n- grep \"function aabb\" js/entities.js | wc -l (should be 0)\n- grep -c \"function checkEnemyCollision\" js/collision.js (should be 1)\n- grep \"function checkEnemyCollision\" js/game.js | wc -l (should be 0)\n- grep \"function checkCoinCollision\" js/collision.js (should find 1)\n- grep \"function checkFloatingItemCollision\" js/collision.js (should find 1)\n- grep \"function hitBlock\" js/collision.js (should find 1)\n- grep \"collision.js\" index.html (must exist, before game.js)\n\nCONSTRAINTS:\n- Do not change function signatures or internal logic\n- Do NOT move checkFlag() — it is game-state logic (flagReached, winTimer, state) and stays in game.js\n- Do NOT move checkTransition() — it is map-transition logic and stays in game.js\n- Preserve all references to globals exactly as they are (no new imports)\n- Do not modify player.js, world.js, input.js, or sound.js\n\nKNOWN_FACTS:\n- No build system or tests; verification is grep-based\n- Script load order in index.html: input.js, world.js, entities.js, sound.js, player.js, game.js\n- collision.js must load after entities.js (aabb is used there conceptually) but before game.js\n- hitBlock references: T, SOLID, setTile, map, player, Sound, particles, score\n- checkEnemyCollision references: player, enemies, aabb, Sound, particles, score, JUMP_FORCE\n- checkCoinCollision references: player, coins, aabb, coinCount, score, Sound, particles, lives\n- checkFloatingItemCollision references: player, floatingItems, aabb, coinCount, score, Sound, particles\n\nKNOWN_FAILED_APPROACHES:\n- none\n\nOUTPUT_CONTRACT:\nReturn status, concise summary, files changed, checks, remaining risk, and a failure fingerprint when incomplete.",
+  "exitCode": 0,
+  "usage": {
+    "input": 90745,
+    "output": 4876,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "cost": 0,
+    "turns": 7
+  },
+  "model": "lmstudio/qwen3.6-27b@q4_k_m",
+  "attemptedModels": [
+    "lmstudio/qwen3.6-27b@q4_k_m"
+  ],
+  "modelAttempts": [
+    {
+      "model": "lmstudio/qwen3.6-27b@q4_k_m",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 90745,
+        "output": 4876,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 7
+      }
+    }
+  ],
+  "durationMs": 164725,
+  "toolCount": 10,
+  "transcriptPath": "/home/sandor/proj/pi_test/.pi-subagents/artifacts/de161740_coding-worker_0_transcript.jsonl",
+  "timestamp": 1783673692487
+}

@@ -1,0 +1,37 @@
+{
+  "runId": "6a66cf1c",
+  "agent": "reviewer",
+  "task": "TASK_PACKET:\nGoal: Refactor Super Mario Emoji game from 5 files into 12 modular files by extracting concerns from god modules.\n\nCHANGES_SUMMARY:\n- js/constants.js (NEW, 64 lines): TILE, T, SOLID, COLS, ROWS, WORLD_W, WORLD_H, TILE_EMOJI, TRANSITION, GRAVITY, MAX_FALL, MOVE_SPEED, JUMP_FORCE, GROUND_ROW\n- js/levels.js (NEW, 111 lines): ENEMY_TYPES, spawnEnemies, spawnCoins, spawnEnemiesUnderground, spawnCoinsUnderground, WARP_PIPES, ELEVATORS, MAP_INFO\n- js/camera.js (NEW, 19 lines): Camera object (x, y, w, h, follow)\n- js/collision.js (NEW, 123 lines): aabb, hitBlock, checkEnemyCollision, checkCoinCollision, checkFloatingItemCollision\n- js/sound.js (NEW, 108 lines): Sound IIFE (ensure, tone, noise, play, unlock)\n- js/hud.js (NEW, 35 lines): DOM refs for HUD, showOverlay, hideOverlay, updateHUD\n- js/render.js (NEW, 40 lines): drawWorld, drawSky\n- js/game.js (315 lines, down from ~400): now only canvas setup, game state vars, initGame, resetLevel, checkFlag, checkTransition, transitionToMap, update (state machine), render (orchestration), gameLoop\n- js/entities.js (222 lines, down from ~250): only entity classes (Enemy, Coin, FloatingItem, Particle)\n- js/world.js (193 lines, down from ~250): only map builders (buildLevel, buildUnderground, loadMap) and tile accessors (getTile, setTile)\n- js/player.js (268 lines, down from ~270): only Player class (physics constants moved to constants.js)\n- js/input.js (155 lines, unchanged): already well modularized\n\nDEPENDENCY_ORDER (index.html script tags):\n1. constants.js (no deps)\n2. levels.js (depends: constants.js for TILE)\n3. input.js (no deps)\n4. camera.js (no deps)\n5. world.js (depends: constants.js for T, SOLID, TILE, COLS, ROWS)\n6. entities.js (depends: constants.js for TILE; levels.js for ENEMY_TYPES)\n7. collision.js (depends: constants.js, entities.js classes, levels.js)\n8. sound.js (no deps)\n9. player.js (depends: constants.js for GRAVITY etc; world.js for SOLID, getTile; sound.js for Sound)\n10. hud.js (no deps)\n11. render.js (depends: constants.js, camera.js, levels.js for MAP_INFO)\n12. game.js (depends: all above)\n\nVERIFICATION_EVIDENCE (all passed):\n- Each extracted function found in new file, removed from old file (grep verified)\n- Script load order correct in index.html\n- No circular dependencies\n- All global references preserved (no API changes)\n\nREVIEW against:\n- correctness and missing edge cases\n- module ownership and dependency direction\n- whether the dependency order in index.html is valid (no forward references)\n- error handling and regression risk",
+  "exitCode": 0,
+  "usage": {
+    "input": 867438,
+    "output": 9554,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "cost": 0,
+    "turns": 32
+  },
+  "model": "lmstudio/qwen3.6-27b@q4_k_m",
+  "attemptedModels": [
+    "lmstudio/qwen3.6-27b@q4_k_m"
+  ],
+  "modelAttempts": [
+    {
+      "model": "lmstudio/qwen3.6-27b@q4_k_m",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 867438,
+        "output": 9554,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 32
+      }
+    }
+  ],
+  "durationMs": 349497,
+  "toolCount": 60,
+  "transcriptPath": "/home/sandor/proj/pi_test/.pi-subagents/artifacts/6a66cf1c_reviewer_0_transcript.jsonl",
+  "timestamp": 1783674993845
+}

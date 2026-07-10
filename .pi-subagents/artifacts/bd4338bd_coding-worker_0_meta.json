@@ -1,0 +1,37 @@
+{
+  "runId": "bd4338bd",
+  "agent": "coding-worker",
+  "task": "TASK_ID: refactor-03-extract-hud\n\nGOAL:\nExtract all HUD DOM references and helper functions from game.js into a new js/hud.js module.\n\nACCEPTANCE_CRITERIA:\n- js/hud.js exists and contains: all HUD DOM element refs (elScore, elCoins, elTime, elLives, elWorld, elOverlay, elTitle, elSubtitle, elAction), showOverlay(), hideOverlay(), updateHUD()\n- game.js no longer contains those DOM refs or function bodies (only calls to showOverlay/hideOverlay/updateHUD remain)\n- hud.js loads before game.js in index.html\n- updateHUD() still reads global score, coinCount, timeLeft, lives, currentMapIndex\n\nALLOWED_PATHS:\n- js/hud.js (create)\n- js/game.js (remove HUD DOM refs and 3 HUD functions)\n- index.html (add hud.js script tag)\n\nENTRY_SYMBOLS:\n- `const elScore = document.getElementById('score')` block in game.js (lines ~43-50)\n- `function showOverlay(title, subtitle, action)` in game.js\n- `function hideOverlay()` in game.js\n- `function updateHUD()` in game.js\n\nACCEPTANCE_COMMANDS:\n- grep -c \"elScore\" js/hud.js (should be >= 2, one in getElementById, one in updateHUD)\n- grep \"const elScore\" js/game.js | wc -l (should be 0)\n- grep -c \"function showOverlay\" js/hud.js (should be 1)\n- grep \"function showOverlay\" js/game.js | wc -l (should be 0)\n- grep -c \"function updateHUD\" js/hud.js (should be 1)\n- grep \"hud.js\" index.html (must exist, before game.js)\n- grep \"showOverlay\\|hideOverlay\\|updateHUD\" js/game.js (should find calls only, not definitions)\n\nCONSTRAINTS:\n- Do not change function signatures\n- Do NOT move the resizeCanvas function or canvas setup — those are rendering, handled in a later task\n- Preserve all global variable reads in updateHUD (score, coinCount, timeLeft, lives, currentMapIndex)\n- Do not modify any file other than the three listed\n\nKNOWN_FACTS:\n- Script load order: input.js, world.js, entities.js, collision.js, sound.js, player.js, game.js\n- HUD elements are DOM elements from index.html: #score, #coins, #time, #lives, #world, #overlay, #overlay-title, #overlay-subtitle, #overlay-action\n- showOverlay/hideOverlay are called from game.js state machine\n\nKNOWN_FAILED_APPROACHES:\n- none\n\nOUTPUT_CONTRACT:\nReturn status, concise summary, files changed, checks, remaining risk, and a failure fingerprint when incomplete.",
+  "exitCode": 0,
+  "usage": {
+    "input": 79437,
+    "output": 3459,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "cost": 0,
+    "turns": 12
+  },
+  "model": "lmstudio/qwen3.6-27b@q4_k_m",
+  "attemptedModels": [
+    "lmstudio/qwen3.6-27b@q4_k_m"
+  ],
+  "modelAttempts": [
+    {
+      "model": "lmstudio/qwen3.6-27b@q4_k_m",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 79437,
+        "output": 3459,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 12
+      }
+    }
+  ],
+  "durationMs": 108128,
+  "toolCount": 13,
+  "transcriptPath": "/home/sandor/proj/pi_test/.pi-subagents/artifacts/bd4338bd_coding-worker_0_transcript.jsonl",
+  "timestamp": 1783673833731
+}

@@ -2,72 +2,6 @@
  * world.js — Tilemap level data, camera, and world rendering
  */
 
-const TILE = 32;
-const COLS = 200;
-const ROWS = 15;
-const WORLD_W = COLS * TILE;
-const WORLD_H = ROWS * TILE;
-
-// Tile types
-const T = {
-  AIR: 0,
-  GROUND: 1,
-  BRICK: 2,
-  QUESTION: 3,
-  PIPE_LB: 4,   // pipe left-bottom
-  PIPE_RB: 5,   // pipe right-bottom
-  PIPE_LT: 6,   // pipe left-top
-  PIPE_RT: 7,   // pipe right-top
-  FLAG: 8,      // flag pole
-  FLAG_TOP: 9,  // flag top (with flag)
-  HARD: 10,     // indestructible block
-  USED: 11,     // used question block
-  WARP_PIPE: 12, // warp pipe (enter to go to another map)
-  ELEVATOR: 13,  // elevator (ride to go back up)
-  DARK_GROUND: 14, // underground ground
-  CLOUD: -1,    // decoration (not solid)
-  BUSH: -2      // decoration (not solid)
-};
-
-// Emoji map for tiles
-const TILE_EMOJI = {
-  [T.GROUND]: '🟫',
-  [T.BRICK]: '🧱',
-  [T.QUESTION]: '❓',
-  [T.PIPE_LB]: '🟩',
-  [T.PIPE_RB]: '🟩',
-  [T.PIPE_LT]: '🟩',
-  [T.PIPE_RT]: '🟩',
-  [T.FLAG]: '🏁',
-  [T.FLAG_TOP]: '🚩',
-  [T.HARD]: '⬛',
-  [T.USED]: '🔲',
-  [T.WARP_PIPE]: '🟦',
-  [T.ELEVATOR]: '🛗',
-  [T.DARK_GROUND]: '🟪',
-  [T.CLOUD]: '☁️',
-  [T.BUSH]: '🌳'
-};
-
-// Solid tiles (for collision)
-const SOLID = new Set([T.GROUND, T.BRICK, T.QUESTION, T.PIPE_LB, T.PIPE_RB, T.PIPE_LT, T.PIPE_RT, T.HARD, T.USED, T.DARK_GROUND]);
-
-const TRANSITION = new Set([T.WARP_PIPE, T.ELEVATOR]);
-
-const MAP_INFO = [
-  { name: 'Surface', skyTop: '#5c94fc', skyMid: '#87ceeb', skyBot: '#b0e0ff' },
-  { name: 'Underground', skyTop: '#1a1a2e', skyMid: '#16213e', skyBot: '#0f3460' },
-];
-
-const WARP_PIPES = [
-  { map: 0, col: 53, topRow: 11, bottomRow: 12, targetMap: 1, targetCol: 3 },
-  { map: 0, col: 120, topRow: 11, bottomRow: 12, targetMap: 1, targetCol: 80 },
-];
-
-const ELEVATORS = [
-  { map: 1, col: 150, row: 12, targetMap: 0, targetCol: 58 },
-];
-
 /**
  * Build the level map (2D array: map[row][col])
  * Inspired by World 1-1
@@ -239,25 +173,6 @@ function loadMap(index) {
 }
 
 /**
- * Camera follows the player horizontally
- */
-const Camera = {
-  x: 0,
-  y: 0,
-  w: 800,
-  h: 480,
-  follow(player) {
-    // Deadzone: camera only moves when player passes 1/3 of screen
-    const target = player.x - this.w * 0.35;
-    if (target > this.x) {
-      this.x = target;
-    }
-    // Clamp to world bounds
-    this.x = Math.max(0, Math.min(this.x, WORLD_W - this.w));
-  }
-};
-
-/**
  * Get tile at world coordinates
  */
 function getTile(map, wx, wy) {
@@ -276,39 +191,3 @@ function setTile(map, col, row, value) {
   }
 }
 
-/**
- * Draw the world (tiles + decorations)
- */
-function drawWorld(ctx, map) {
-  const startCol = Math.max(0, Math.floor(Camera.x / TILE));
-  const endCol = Math.min(COLS - 1, Math.ceil((Camera.x + Camera.w) / TILE));
-  const startRow = Math.max(0, Math.floor(Camera.y / TILE));
-  const endRow = Math.min(ROWS - 1, Math.ceil((Camera.y + Camera.h) / TILE));
-
-  ctx.font = `${TILE - 2}px serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  for (let r = startRow; r <= endRow; r++) {
-    for (let c = startCol; c <= endCol; c++) {
-      const tile = map[r][c];
-      if (tile === T.AIR) continue;
-      const x = c * TILE - Camera.x + TILE / 2;
-      const y = r * TILE - Camera.y + TILE / 2;
-      ctx.fillText(TILE_EMOJI[tile] || '❓', x, y);
-    }
-  }
-}
-
-/**
- * Sky gradient background
- */
-function drawSky(ctx, mapIndex) {
-  const info = MAP_INFO[mapIndex] || MAP_INFO[0];
-  const grad = ctx.createLinearGradient(0, 0, 0, Camera.h);
-  grad.addColorStop(0, info.skyTop);
-  grad.addColorStop(0.7, info.skyMid);
-  grad.addColorStop(1, info.skyBot);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, Camera.w, Camera.h);
-}

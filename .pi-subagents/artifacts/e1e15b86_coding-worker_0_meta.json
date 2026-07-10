@@ -1,0 +1,37 @@
+{
+  "runId": "e1e15b86",
+  "agent": "coding-worker",
+  "task": "TASK_ID: refactor-05-extract-render\n\nGOAL:\nExtract drawWorld() and drawSky() from world.js into a new js/render.js module.\n\nACCEPTANCE_CRITERIA:\n- js/render.js exists and contains drawWorld() and drawSky()\n- world.js no longer contains drawWorld() or drawSky()\n- render.js loads before game.js in index.html\n- game.js's render() function still calls drawSky() and drawWorld() successfully\n\nALLOWED_PATHS:\n- js/render.js (create)\n- js/world.js (remove drawWorld and drawSky)\n- index.html (add render.js script tag)\n\nENTRY_SYMBOLS:\n- `function drawWorld(ctx, map)` in world.js\n- `function drawSky(ctx, mapIndex)` in world.js\n\nACCEPTANCE_COMMANDS:\n- grep -c \"function drawWorld\" js/render.js (should be 1)\n- grep \"function drawWorld\" js/world.js | wc -l (should be 0)\n- grep -c \"function drawSky\" js/render.js (should be 1)\n- grep \"function drawSky\" js/world.js | wc -l (should be 0)\n- grep \"render.js\" index.html (must exist, before game.js)\n- grep \"drawWorld\\|drawSky\" js/game.js (should find calls only)\n\nCONSTRAINTS:\n- Do not change function signatures\n- drawWorld references: Camera, TILE, T, TILE_EMOJI, COLS, ROWS — all from world.js globals, must remain accessible\n- drawSky references: Camera, MAP_INFO — all from world.js globals\n- Do NOT move the resizeCanvas function from game.js — that stays for now\n- Do not modify any file other than the three listed\n\nKNOWN_FACTS:\n- drawWorld uses: Camera.x, Camera.w, Camera.y, Camera.h, TILE, T.AIR, TILE_EMOJI, COLS, ROWS\n- drawSky uses: Camera.h, Camera.w, MAP_INFO\n- Both functions are called from game.js render()\n- world.js still retains: TILE, COLS, ROWS, WORLD_W, WORLD_H, T, TILE_EMOJI, SOLID, TRANSITION, MAP_INFO, WARP_PIPES, ELEVATORS, buildLevel, buildUnderground, loadMap, getTile, setTile\n\nKNOWN_FAILED_APPROACHES:\n- none\n\nOUTPUT_CONTRACT:\nReturn status, concise summary, files changed, checks, remaining risk, and a failure fingerprint when incomplete.",
+  "exitCode": 0,
+  "usage": {
+    "input": 85994,
+    "output": 3361,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "cost": 0,
+    "turns": 8
+  },
+  "model": "lmstudio/qwen3.6-27b@q4_k_m",
+  "attemptedModels": [
+    "lmstudio/qwen3.6-27b@q4_k_m"
+  ],
+  "modelAttempts": [
+    {
+      "model": "lmstudio/qwen3.6-27b@q4_k_m",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 85994,
+        "output": 3361,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 8
+      }
+    }
+  ],
+  "durationMs": 112910,
+  "toolCount": 17,
+  "transcriptPath": "/home/sandor/proj/pi_test/.pi-subagents/artifacts/e1e15b86_coding-worker_0_transcript.jsonl",
+  "timestamp": 1783674077587
+}

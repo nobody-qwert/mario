@@ -1,0 +1,23 @@
+:root {
+  color-scheme: dark;
+  background: #111;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: #111;
+}
+
+main {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+}
+
+img {
+  display: block;
+  width: min(100%, 1536px);
+  height: auto;
+  filter: invert(0.93);
+}

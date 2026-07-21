@@ -21,6 +21,8 @@ const ENEMY_RADIUS = 0.48;
 const COLOR_PATROL = new THREE.Color(0x5bbbd6);
 const COLOR_CHASE = new THREE.Color(0xff8c42);
 const COLOR_ATTACK = new THREE.Color(0xff4057);
+const MOBILE_PROFILE = window.matchMedia('(pointer: coarse)').matches
+  || (navigator.maxTouchPoints > 0 && window.matchMedia('(max-width: 1024px)').matches);
 
 const STATE = {
   PATROL: 'PATROL',
@@ -54,59 +56,146 @@ function material(color, options = {}) {
   });
 }
 
-function mesh(geometry, mat, x, y, z, parent) {
+function mesh(geometry, mat, x, y, z, parent, castsOnMobile = false) {
   const part = new THREE.Mesh(geometry, mat);
   part.position.set(x, y, z);
-  part.castShadow = true;
+  // On phones, only silhouette-defining parts enter the costly shadow pass.
+  part.castShadow = !MOBILE_PROFILE || castsOnMobile;
   part.receiveShadow = true;
   parent.add(part);
   return part;
 }
 
-/** Build a clean low-poly rig with pivot groups for code-driven animation. */
+// Reused geometry keeps the more detailed soldiers inexpensive across waves.
+const ENEMY_GEO = {
+  torso: new THREE.CylinderGeometry(0.39, 0.29, 0.68, 10),
+  abdomen: new THREE.CapsuleGeometry(0.25, 0.25, 5, 10),
+  pelvis: new THREE.CylinderGeometry(0.29, 0.25, 0.24, 10),
+  neck: new THREE.CylinderGeometry(0.105, 0.12, 0.15, 10),
+  head: new THREE.SphereGeometry(1, 16, 12),
+  visor: new THREE.CapsuleGeometry(0.055, 0.29, 4, 10),
+  shoulder: new THREE.SphereGeometry(1, 12, 8),
+  upperArm: new THREE.CapsuleGeometry(0.105, 0.24, 5, 8),
+  forearm: new THREE.CapsuleGeometry(0.09, 0.25, 5, 8),
+  hand: new THREE.SphereGeometry(0.105, 10, 8),
+  upperLeg: new THREE.CapsuleGeometry(0.13, 0.3, 5, 9),
+  shin: new THREE.CapsuleGeometry(0.105, 0.31, 5, 9),
+  knee: new THREE.SphereGeometry(0.14, 10, 8),
+  boot: new THREE.CapsuleGeometry(0.12, 0.18, 5, 9),
+  rifleBody: new THREE.CapsuleGeometry(0.075, 0.48, 4, 8),
+  rifleBarrel: new THREE.CylinderGeometry(0.027, 0.035, 0.34, 8),
+};
+
+/** Build an articulated armored soldier with pivot groups for animation. */
 function createEnemyModel() {
   const root = new THREE.Group();
   const rig = new THREE.Group();
-  // Object3D.lookAt points +Z at its target; the modeled face points -Z.
+  // Parts are authored toward -Z, then flipped so root.lookAt's +Z faces its target.
   rig.rotation.y = Math.PI;
   root.add(rig);
 
   const armor = material(0x24566b, { metalness: 0.35, roughness: 0.38 });
   const dark = material(0x101923, { metalness: 0.5, roughness: 0.3 });
-  const cloth = material(0x26313d, { roughness: 0.85 });
+  const cloth = material(0x202b35, { roughness: 0.9 });
+  const skin = material(0x8f6048, { roughness: 0.82 });
   const visor = material(0xff4c35, {
     metalness: 0.1, roughness: 0.2, emissive: 0xff2200, emissiveIntensity: 2.2,
   });
+  const weaponMetal = material(0x080c11, { metalness: 0.78, roughness: 0.24 });
 
-  // Torso, shoulder plate, belt and head give a readable silhouette.
-  mesh(new THREE.BoxGeometry(0.72, 0.78, 0.42), armor, 0, 1.42, 0, rig).userData.tintable = true;
-  mesh(new THREE.BoxGeometry(0.86, 0.16, 0.5), dark, 0, 1.72, 0, rig);
-  mesh(new THREE.BoxGeometry(0.68, 0.14, 0.44), dark, 0, 1.02, 0, rig);
-  mesh(new THREE.BoxGeometry(0.48, 0.44, 0.44), dark, 0, 2.03, 0, rig);
-  mesh(new THREE.BoxGeometry(0.39, 0.12, 0.035), visor, 0, 2.07, -0.235, rig);
+  // Tapered torso over a softer undersuit makes the body read as anatomy, not a box.
+  const torso = mesh(ENEMY_GEO.torso, armor, 0, 1.48, 0, rig, true);
+  torso.scale.z = 0.68;
+  torso.userData.tintable = true;
+  const abdomen = mesh(ENEMY_GEO.abdomen, cloth, 0, 1.15, 0, rig);
+  abdomen.scale.z = 0.72;
+  const pelvis = mesh(ENEMY_GEO.pelvis, dark, 0, 0.98, 0, rig);
+  pelvis.scale.z = 0.78;
+  mesh(new THREE.TorusGeometry(0.275, 0.035, 6, 16), dark, 0, 1.08, 0, rig).rotation.x = Math.PI / 2;
 
-  function makeLimb(x, y, isArm) {
-    const pivot = new THREE.Group();
-    pivot.position.set(x, y, 0);
-    rig.add(pivot);
-    const length = isArm ? 0.72 : 0.88;
-    const width = isArm ? 0.2 : 0.25;
-    mesh(new THREE.BoxGeometry(width, length, width), isArm ? armor : cloth, 0, -length / 2, 0, pivot);
-    if (!isArm) mesh(new THREE.BoxGeometry(0.28, 0.16, 0.45), dark, 0, -length + 0.02, -0.1, pivot);
-    return pivot;
+  // Neck, head and layered helmet/face pieces.
+  mesh(ENEMY_GEO.neck, skin, 0, 1.9, 0, rig);
+  const head = mesh(ENEMY_GEO.head, skin, 0, 2.08, -0.005, rig);
+  head.scale.set(0.235, 0.29, 0.22);
+  const helmet = mesh(ENEMY_GEO.head, dark, 0, 2.15, 0.015, rig, true);
+  helmet.scale.set(0.27, 0.24, 0.25);
+  const visorMesh = mesh(ENEMY_GEO.visor, visor, 0, 2.11, -0.225, rig);
+  visorMesh.rotation.z = Math.PI / 2;
+  const jawGuard = mesh(new THREE.CylinderGeometry(0.16, 0.205, 0.16, 8), dark, 0, 1.94, -0.105, rig);
+  jawGuard.rotation.x = Math.PI / 2;
+  jawGuard.scale.z = 0.65;
+
+  // Rounded shoulder shells bridge the torso and articulated arms.
+  for (const side of [-1, 1]) {
+    const shoulder = mesh(ENEMY_GEO.shoulder, armor, side * 0.43, 1.73, 0, rig);
+    shoulder.scale.set(0.22, 0.16, 0.26);
   }
 
-  const leftArm = makeLimb(-0.49, 1.7, true);
-  const rightArm = makeLimb(0.49, 1.7, true);
-  const leftLeg = makeLimb(-0.2, 1.0, false);
-  const rightLeg = makeLimb(0.2, 1.0, false);
+  function makeArm(side) {
+    const shoulderPivot = new THREE.Group();
+    shoulderPivot.position.set(side * 0.46, 1.72, 0);
+    shoulderPivot.rotation.z = -side * 0.24;
+    rig.add(shoulderPivot);
+    mesh(ENEMY_GEO.upperArm, armor, 0, -0.22, 0, shoulderPivot, true);
 
-  // A visible enemy blaster held across the chest.
-  const blaster = mesh(new THREE.BoxGeometry(0.14, 0.16, 0.82), dark, 0.37, 1.42, -0.42, rig);
-  blaster.rotation.x = -0.08;
-  mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.36, 8), dark, 0.37, 1.43, -0.98, rig).rotation.x = Math.PI / 2;
+    const elbow = new THREE.Group();
+    elbow.position.set(0, -0.46, 0);
+    elbow.rotation.x = 0.92;
+    shoulderPivot.add(elbow);
+    mesh(ENEMY_GEO.forearm, cloth, 0, -0.215, 0, elbow);
+    const hand = mesh(ENEMY_GEO.hand, dark, 0, -0.46, 0, elbow);
+    hand.scale.set(0.9, 1.15, 0.9);
+    return { pivot: shoulderPivot, elbow };
+  }
 
-  root.userData.rig = { rig, leftArm, rightArm, leftLeg, rightLeg, armor, visor };
+  function makeLeg(side) {
+    const hip = new THREE.Group();
+    hip.position.set(side * 0.18, 0.98, 0);
+    rig.add(hip);
+    mesh(ENEMY_GEO.upperLeg, cloth, 0, -0.24, 0, hip, true);
+
+    const knee = new THREE.Group();
+    knee.position.set(0, -0.48, 0);
+    hip.add(knee);
+    const kneePad = mesh(ENEMY_GEO.knee, armor, 0, 0, -0.075, knee);
+    kneePad.scale.set(0.9, 0.75, 0.55);
+    mesh(ENEMY_GEO.shin, dark, 0, -0.23, 0, knee, true);
+    const boot = mesh(ENEMY_GEO.boot, dark, 0, -0.38, -0.105, knee);
+    boot.rotation.x = Math.PI / 2;
+    boot.scale.set(1.05, 1, 0.9);
+    return { pivot: hip, knee };
+  }
+
+  const leftArmRig = makeArm(-1);
+  const rightArmRig = makeArm(1);
+  const leftLegRig = makeLeg(-1);
+  const rightLegRig = makeLeg(1);
+
+  // A compact rifle with cylindrical receiver, barrel, optic and magazine.
+  const rifle = mesh(ENEMY_GEO.rifleBody, weaponMetal, 0.15, 1.45, -0.43, rig, true);
+  rifle.rotation.x = Math.PI / 2;
+  const enemyBarrel = mesh(ENEMY_GEO.rifleBarrel, weaponMetal, 0.15, 1.46, -0.87, rig);
+  enemyBarrel.rotation.x = Math.PI / 2;
+  mesh(new THREE.CapsuleGeometry(0.045, 0.13, 4, 8), dark, 0.15, 1.29, -0.35, rig).rotation.z = 0.15;
+  mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.11, 8), visor, 0.15, 1.57, -0.51, rig).rotation.x = Math.PI / 2;
+  const magazine = mesh(new THREE.CapsuleGeometry(0.055, 0.16, 4, 8), dark, 0.15, 1.27, -0.49, rig);
+  magazine.rotation.z = 0.12;
+
+  // Small backpack breaks up the rear silhouette without affecting collision.
+  const backpack = mesh(new THREE.CapsuleGeometry(0.17, 0.28, 5, 10), dark, 0, 1.5, 0.27, rig);
+  backpack.scale.x = 1.25;
+
+  root.userData.rig = {
+    rig,
+    leftArm: leftArmRig.pivot,
+    rightArm: rightArmRig.pivot,
+    leftLeg: leftLegRig.pivot,
+    rightLeg: rightLegRig.pivot,
+    leftKnee: leftLegRig.knee,
+    rightKnee: rightLegRig.knee,
+    armor,
+    visor,
+  };
   return root;
 }
 
@@ -124,6 +213,8 @@ function animateEnemy(enemy, deltaTime, moving) {
   rig.rightLeg.rotation.x = -stride;
   rig.leftArm.rotation.x = -stride * 0.7 - 0.35;
   rig.rightArm.rotation.x = stride * 0.7 - 0.35;
+  rig.leftKnee.rotation.x = Math.max(0, -stride) * 0.55;
+  rig.rightKnee.rotation.x = Math.max(0, stride) * 0.55;
   rig.rig.position.y = settle;
   rig.rig.rotation.z = moving ? Math.sin(enemy.animTime) * 0.035 : 0;
 }

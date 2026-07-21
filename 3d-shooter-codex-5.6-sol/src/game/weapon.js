@@ -21,17 +21,12 @@ const MUZZLE_LIGHT_INTENSITY = 2;
 const RECOIL_KICKBACK = 0.08; // metres the gun kicks back on fire
 const RECOIL_RECOVERY = 0.15; // seconds to smoothly return to rest position
 
-// Gun model dimensions (metres)
-const BODY_WIDTH = 0.14;
-const BODY_HEIGHT = 0.16;
-const BODY_DEPTH = 0.55;
-const BARREL_RADIUS = 0.035;
-const BARREL_LENGTH = 0.32;
+const MUZZLE_TIP_Z = -1.16;
 
 // Gun offset from camera (right, down) — first-person perspective
-const GUN_OFFSET_X = 0.32;
-const GUN_OFFSET_Y = -0.26;
-const GUN_OFFSET_Z = -0.52;
+const GUN_OFFSET_X = 0.34;
+const GUN_OFFSET_Y = -0.28;
+const GUN_OFFSET_Z = -0.48;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -73,52 +68,124 @@ function createMuzzleFlashSprite() {
 // Gun model builder
 // ---------------------------------------------------------------------------
 
+/** Make a compact beveled box without loading an external model or addon. */
+function roundedBoxGeometry(width, height, depth, radius = 0.02) {
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const r = Math.min(radius, halfW, halfH);
+  const shape = new THREE.Shape();
+  shape.moveTo(-halfW + r, -halfH);
+  shape.lineTo(halfW - r, -halfH);
+  shape.quadraticCurveTo(halfW, -halfH, halfW, -halfH + r);
+  shape.lineTo(halfW, halfH - r);
+  shape.quadraticCurveTo(halfW, halfH, halfW - r, halfH);
+  shape.lineTo(-halfW + r, halfH);
+  shape.quadraticCurveTo(-halfW, halfH, -halfW, halfH - r);
+  shape.lineTo(-halfW, -halfH + r);
+  shape.quadraticCurveTo(-halfW, -halfH, -halfW + r, -halfH);
+
+  const bevel = Math.min(0.012, r * 0.45);
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth,
+    steps: 1,
+    curveSegments: 3,
+    bevelEnabled: true,
+    bevelSegments: 2,
+    bevelSize: bevel,
+    bevelThickness: bevel,
+  });
+  geometry.translate(0, 0, -depth / 2);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function addPart(parent, geometry, mat, position, rotation = [0, 0, 0]) {
+  const part = new THREE.Mesh(geometry, mat);
+  part.position.set(...position);
+  part.rotation.set(...rotation);
+  parent.add(part);
+  return part;
+}
+
 /**
  * Build the gun group from Three.js primitives and attach it to the camera.
  */
 function buildGunModel(camera) {
   const group = new THREE.Group();
-
-  // --- Body (BoxGeometry) ---
-  const bodyGeo = new THREE.BoxGeometry(BODY_WIDTH, BODY_HEIGHT, BODY_DEPTH);
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x202833, metalness: 0.75, roughness: 0.25 });
-  const body = new THREE.Mesh(bodyGeo, bodyMat);
-
-  // --- Barrel (CylinderGeometry) ---
-  const barrelGeo = new THREE.CylinderGeometry(BARREL_RADIUS, BARREL_RADIUS, BARREL_LENGTH, 12);
-  const barrelMat = new THREE.MeshStandardMaterial({ color: 0x090d12, metalness: 0.9, roughness: 0.18 });
-  const barrel = new THREE.Mesh(barrelGeo, barrelMat);
-  barrel.rotation.x = Math.PI / 2; // point along -Z (forward)
-  barrel.position.z = -BODY_DEPTH / 2 - BARREL_LENGTH / 2 + 0.05;
-
-  // --- Grip hint (small box below body) ---
-  const gripGeo = new THREE.BoxGeometry(BODY_WIDTH * 0.8, BODY_HEIGHT * 1.2, BODY_DEPTH * 0.3);
-  const gripMat = new THREE.MeshStandardMaterial({ color: 0x151a20, roughness: 0.8 });
-  const grip = new THREE.Mesh(gripGeo, gripMat);
-  grip.position.set(0, -BODY_HEIGHT / 2 - BODY_HEIGHT * 0.6, BODY_DEPTH * 0.15);
-
-  // Bright receiver strip and sights keep the silhouette readable in dark areas.
-  const accentMat = new THREE.MeshStandardMaterial({
+  const gunmetal = new THREE.MeshStandardMaterial({ color: 0x222a31, metalness: 0.86, roughness: 0.24 });
+  const blackMetal = new THREE.MeshStandardMaterial({ color: 0x080b0e, metalness: 0.92, roughness: 0.2 });
+  const polymer = new THREE.MeshStandardMaterial({ color: 0x151b20, metalness: 0.15, roughness: 0.72 });
+  const accent = new THREE.MeshStandardMaterial({
     color: 0xff8a24, emissive: 0xff3c00, emissiveIntensity: 1.1,
     metalness: 0.35, roughness: 0.3,
   });
-  const accent = new THREE.Mesh(new THREE.BoxGeometry(BODY_WIDTH * 1.05, 0.025, BODY_DEPTH * 0.62), accentMat);
-  accent.position.set(0, BODY_HEIGHT / 2 + 0.006, -0.03);
-  const sight = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.065, 0.035), accentMat);
-  sight.position.set(0, BODY_HEIGHT / 2 + 0.04, -BODY_DEPTH / 2 + 0.04);
+  const glove = new THREE.MeshStandardMaterial({ color: 0x30383c, roughness: 0.92 });
+  const sleeve = new THREE.MeshStandardMaterial({ color: 0x29343b, roughness: 0.88 });
+  const glass = new THREE.MeshStandardMaterial({
+    color: 0x67dffa, emissive: 0x126f86, emissiveIntensity: 0.75,
+    metalness: 0.1, roughness: 0.08, transparent: true, opacity: 0.55,
+  });
 
-  // A simple gloved hand anchors the weapon to the first-person view.
-  const handMat = new THREE.MeshStandardMaterial({ color: 0x6f4936, roughness: 0.9 });
-  const hand = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.18), handMat);
-  hand.position.set(0.02, -0.17, 0.1);
-  hand.rotation.x = -0.25;
+  // Layered, beveled receiver and tapered stock establish the rifle silhouette.
+  addPart(group, roundedBoxGeometry(0.2, 0.17, 0.5, 0.035), gunmetal, [0, 0, -0.22]);
+  addPart(group, roundedBoxGeometry(0.165, 0.105, 0.62, 0.025), blackMetal, [0, 0.09, -0.35]);
+  addPart(group, roundedBoxGeometry(0.17, 0.11, 0.27, 0.025), polymer, [0, -0.085, -0.055]);
+  addPart(group, roundedBoxGeometry(0.16, 0.17, 0.25, 0.035), polymer, [0, -0.005, 0.155]);
+  addPart(group, roundedBoxGeometry(0.19, 0.2, 0.055, 0.025), blackMetal, [0, -0.005, 0.305]);
 
-  group.add(body);
-  group.add(barrel);
-  group.add(grip);
-  group.add(accent);
-  group.add(sight);
-  group.add(hand);
+  // Angled pistol grip, curved-looking magazine and trigger guard.
+  addPart(group, new THREE.CapsuleGeometry(0.058, 0.14, 5, 10), polymer,
+    [0, -0.18, 0.04], [-0.2, 0, 0]);
+  addPart(group, roundedBoxGeometry(0.125, 0.27, 0.13, 0.035), blackMetal,
+    [0, -0.225, -0.2], [-0.13, 0, 0]);
+  addPart(group, new THREE.TorusGeometry(0.065, 0.011, 6, 18), blackMetal,
+    [0, -0.115, -0.015]);
+
+  // Faceted handguard, exposed barrel, gas tube and muzzle brake.
+  addPart(group, new THREE.CylinderGeometry(0.09, 0.105, 0.36, 12), polymer,
+    [0, 0.005, -0.73], [Math.PI / 2, 0, 0]);
+  addPart(group, new THREE.CylinderGeometry(0.024, 0.029, 0.23, 12), blackMetal,
+    [0, 0.008, -1.005], [Math.PI / 2, 0, 0]);
+  addPart(group, new THREE.CylinderGeometry(0.047, 0.047, 0.115, 12), blackMetal,
+    [0, 0.008, -1.105], [Math.PI / 2, 0, 0]);
+  addPart(group, new THREE.CylinderGeometry(0.012, 0.012, 0.42, 8), gunmetal,
+    [0, 0.105, -0.73], [Math.PI / 2, 0, 0]);
+
+  // Cooling vents and top-rail teeth add scale cues without expensive textures.
+  for (let i = 0; i < 4; i++) {
+    addPart(group, roundedBoxGeometry(0.012, 0.034, 0.075, 0.004), blackMetal,
+      [-0.101, 0.01, -0.61 - i * 0.075]);
+    addPart(group, roundedBoxGeometry(0.012, 0.034, 0.075, 0.004), blackMetal,
+      [0.101, 0.01, -0.61 - i * 0.075]);
+  }
+  for (let i = 0; i < 7; i++) {
+    addPart(group, new THREE.BoxGeometry(0.14, 0.018, 0.035), gunmetal,
+      [0, 0.157, -0.12 - i * 0.075]);
+  }
+
+  // Holographic optic with a translucent lens and protected illuminated reticle.
+  addPart(group, roundedBoxGeometry(0.14, 0.035, 0.2, 0.012), blackMetal, [0, 0.18, -0.34]);
+  addPart(group, roundedBoxGeometry(0.024, 0.14, 0.035, 0.008), blackMetal, [-0.065, 0.25, -0.38]);
+  addPart(group, roundedBoxGeometry(0.024, 0.14, 0.035, 0.008), blackMetal, [0.065, 0.25, -0.38]);
+  addPart(group, roundedBoxGeometry(0.14, 0.025, 0.035, 0.008), blackMetal, [0, 0.32, -0.38]);
+  addPart(group, new THREE.PlaneGeometry(0.105, 0.09), glass, [0, 0.255, -0.397]);
+  addPart(group, new THREE.RingGeometry(0.012, 0.016, 16), accent, [0, 0.255, -0.4]);
+
+  // Charging handle and selector give the near side some mechanical detail.
+  addPart(group, new THREE.CylinderGeometry(0.015, 0.015, 0.24, 10), blackMetal,
+    [0, 0.075, -0.08], [0, 0, Math.PI / 2]);
+  addPart(group, new THREE.CylinderGeometry(0.026, 0.026, 0.012, 10), accent,
+    [0.108, -0.01, -0.08], [0, 0, Math.PI / 2]);
+
+  // Two rounded hands and sleeves visually connect the rifle to the player.
+  addPart(group, new THREE.CapsuleGeometry(0.068, 0.105, 5, 10), glove,
+    [0.025, -0.22, 0.055], [-0.23, 0, 0]);
+  addPart(group, new THREE.CapsuleGeometry(0.085, 0.25, 5, 10), sleeve,
+    [0.08, -0.39, 0.2], [-0.43, 0, -0.08]);
+  addPart(group, new THREE.CapsuleGeometry(0.07, 0.11, 5, 10), glove,
+    [-0.035, -0.07, -0.7], [Math.PI / 2, 0, 0]);
+  addPart(group, new THREE.CapsuleGeometry(0.085, 0.28, 5, 10), sleeve,
+    [-0.11, -0.25, -0.5], [-0.62, 0, 0.18]);
 
   // Position the gun relative to camera (right-hand side, slightly down)
   group.position.set(GUN_OFFSET_X, GUN_OFFSET_Y, GUN_OFFSET_Z);
@@ -139,9 +206,8 @@ function buildGunModel(camera) {
 function createMuzzleFlash(group) {
   const light = new THREE.PointLight(0xffaa33, MUZZLE_LIGHT_INTENSITY, MUZZLE_LIGHT_DISTANCE);
   const sprite = createMuzzleFlashSprite();
-  const tipZ = -BODY_DEPTH / 2 - BARREL_LENGTH + 0.05;
-  light.position.set(0, 0, tipZ);
-  sprite.position.set(0, 0, tipZ);
+  light.position.set(0, 0.008, MUZZLE_TIP_Z);
+  sprite.position.set(0, 0.008, MUZZLE_TIP_Z);
   light.intensity = 0;
   sprite.visible = false;
   group.add(light, sprite);
@@ -192,14 +258,14 @@ export function createWeapon(camera) {
     isReloading = true;
     reloadElapsed = 0;
 
-    // Visual feedback: dim the gun slightly during reload
+    // Visual feedback: dim each shared material once during reload.
+    const reloadMaterials = new Set();
     group.traverse((child) => {
-      if (child.isMesh && child.material) {
-        child.material._origEmissive = child.material.emissive ? child.material.emissive.getHex() : 0;
-        if (child.material.emissive) {
-          child.material.emissive.setHex(0x331100);
-        }
-      }
+      const mat = child.isMesh ? child.material : null;
+      if (!mat?.emissive || reloadMaterials.has(mat)) return;
+      reloadMaterials.add(mat);
+      mat.userData.reloadEmissive = mat.emissive.getHex();
+      mat.emissive.setHex(0x331100);
     });
 
     reloadTimer = setTimeout(() => {
@@ -209,10 +275,13 @@ export function createWeapon(camera) {
       updateAmmo();
 
       // Restore emissive
+      const restoredMaterials = new Set();
       group.traverse((child) => {
-        if (child.isMesh && child.material && child.material.emissive) {
-          child.material.emissive.setHex(child.material._origEmissive || 0);
-        }
+        const mat = child.isMesh ? child.material : null;
+        if (!mat?.emissive || restoredMaterials.has(mat)) return;
+        restoredMaterials.add(mat);
+        mat.emissive.setHex(mat.userData.reloadEmissive ?? 0);
+        delete mat.userData.reloadEmissive;
       });
     }, RELOAD_DURATION * 1000);
   }
@@ -269,16 +338,14 @@ export function createWeapon(camera) {
     // --- Hitscan raycast ---
     const raycaster = new THREE.Raycaster();
 
-    // Ray origin: slightly offset from camera center (gun position) in world space
-    const gunWorldPos = new THREE.Vector3(GUN_OFFSET_X, GUN_OFFSET_Y, GUN_OFFSET_Z);
-    gunWorldPos.applyMatrix4(camera.matrixWorld);
-
-    // Converge the muzzle ray on the screen centre so hits match the crosshair.
+    // Raycast from the camera so a muzzle extending past a nearby wall cannot shoot through it.
+    camera.updateMatrixWorld(true);
+    group.updateWorldMatrix(true, false);
+    const gunWorldPos = new THREE.Vector3(0, 0.008, MUZZLE_TIP_Z).applyMatrix4(group.matrixWorld);
     const cameraForward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
-    const aimPoint = camera.position.clone().addScaledVector(cameraForward, 100);
-    const direction = aimPoint.sub(gunWorldPos).normalize();
+    const direction = cameraForward.normalize();
 
-    raycaster.set(gunWorldPos, direction);
+    raycaster.set(camera.position, direction);
 
     // The fire method returns hit info so callers can use the raycaster
     // to detect enemy hits. External code should call:
@@ -320,9 +387,7 @@ export function createWeapon(camera) {
    * @returns {THREE.Vector3}
    */
   function getMuzzleTipWorldPos() {
-    const tipLocal = new THREE.Vector3(
-      0, 0, -BODY_DEPTH / 2 - BARREL_LENGTH + 0.05
-    );
+    const tipLocal = new THREE.Vector3(0, 0.008, MUZZLE_TIP_Z);
     return tipLocal.clone().applyMatrix4(group.matrixWorld);
   }
 
@@ -339,9 +404,14 @@ export function createWeapon(camera) {
     group.visible = true;
     muzzleFlash.light.intensity = 0;
     muzzleFlash.sprite.visible = false;
+    const restoredMaterials = new Set();
     group.traverse((child) => {
-      if (child.isMesh && child.material?.emissive && child.material._origEmissive !== undefined) {
-        child.material.emissive.setHex(child.material._origEmissive);
+      const mat = child.isMesh ? child.material : null;
+      if (!mat?.emissive || restoredMaterials.has(mat)) return;
+      restoredMaterials.add(mat);
+      if (mat.userData.reloadEmissive !== undefined) {
+        mat.emissive.setHex(mat.userData.reloadEmissive);
+        delete mat.userData.reloadEmissive;
       }
     });
     updateAmmo();

@@ -1,14 +1,17 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
+  background: #111;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 16px;
   line-height: 1.55;
 }
 
 body {
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
-  color: light-dark(#111, #eee);
-  background: light-dark(#fff, #111);
+  color: #eee;
+  background: #111;
 }
 
 main {
@@ -38,7 +41,7 @@ li + li {
 }
 
 a {
-  color: light-dark(#0645ad, #8ab4f8);
+  color: #8ab4f8;
 }
 
 a:hover,

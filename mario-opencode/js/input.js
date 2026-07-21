@@ -37,6 +37,7 @@ class InputHandler {
         leftBtn.textContent = '◀';
         leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); this.touchControls.left = true; });
         leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); this.touchControls.left = false; });
+        leftBtn.addEventListener('touchcancel', (e) => { this.touchControls.left = false; });
 
         const rightBtn = document.createElement('div');
         rightBtn.className = 'touch-control';
@@ -44,6 +45,7 @@ class InputHandler {
         rightBtn.textContent = '▶';
         rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); this.touchControls.right = true; });
         rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); this.touchControls.right = false; });
+        rightBtn.addEventListener('touchcancel', (e) => { this.touchControls.right = false; });
 
         const jumpBtn = document.createElement('div');
         jumpBtn.className = 'touch-control';
@@ -51,6 +53,7 @@ class InputHandler {
         jumpBtn.textContent = '⬆';
         jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); this.touchControls.jump = true; });
         jumpBtn.addEventListener('touchend', (e) => { e.preventDefault(); this.touchControls.jump = false; });
+        jumpBtn.addEventListener('touchcancel', (e) => { this.touchControls.jump = false; });
 
         container.appendChild(leftBtn);
         container.appendChild(rightBtn);
@@ -67,10 +70,9 @@ class InputHandler {
 
     isDown(keyCode) {
         if (keyCode === 'Space') return !!this.keys['Space'] || this.touchControls.jump;
-        const touchKey = keyCode.toLowerCase();
-        // Only check touch controls for keys that have a corresponding touch button
-        const hasTouchButton = ['left', 'right', 'jump'].includes(touchKey);
-        if (hasTouchButton) return !!this.keys[keyCode] || this.touchControls[touchKey];
+        if (keyCode === 'ArrowLeft' || keyCode === 'KeyA') return !!this.keys[keyCode] || this.touchControls.left;
+        if (keyCode === 'ArrowRight' || keyCode === 'KeyD') return !!this.keys[keyCode] || this.touchControls.right;
+        if (keyCode === 'ArrowUp' || keyCode === 'KeyW') return !!this.keys[keyCode] || this.touchControls.jump;
         return !!this.keys[keyCode];
     }
 

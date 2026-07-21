@@ -15,9 +15,15 @@ import {
  * @returns {{ renderer: WebGLRenderer, scene: Scene }}
  */
 export function createRenderer(container, camera) {
-  const renderer = new WebGLRenderer({ antialias: true });
+  const mobileProfile = window.matchMedia('(pointer: coarse)').matches
+    || (navigator.maxTouchPoints > 0 && window.matchMedia('(max-width: 1024px)').matches);
+  const renderer = new WebGLRenderer({
+    antialias: !mobileProfile,
+    powerPreference: 'high-performance',
+  });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // High-density phone screens otherwise render several million pixels per frame.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobileProfile ? 1.5 : 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFSoftShadowMap;
   renderer.outputColorSpace = SRGBColorSpace;
@@ -41,7 +47,7 @@ export function createRenderer(container, camera) {
   const dirLight = new DirectionalLight(0xffe2bd, 3.2);
   dirLight.position.set(18, 35, 12);
   dirLight.castShadow = true;
-  dirLight.shadow.mapSize.set(2048, 2048);
+  dirLight.shadow.mapSize.set(mobileProfile ? 1024 : 2048, mobileProfile ? 1024 : 2048);
   dirLight.shadow.camera.left = -45;
   dirLight.shadow.camera.right = 45;
   dirLight.shadow.camera.top = 45;

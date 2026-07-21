@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>FPS Game</title>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #050b11; }
+    body { touch-action: none; overscroll-behavior: none; -webkit-user-select: none; user-select: none; }
     #game-container { display: block; width: 100%; height: 100%; }
 
     /* Crosshair overlay */
@@ -150,6 +151,99 @@
       background: rgba(255,255,255,0.3);
     }
 
+    /* Landscape-phone controls. Hidden until touch input is detected. */
+    #mobile-controls {
+      display: none; position: fixed; inset: 0; z-index: 40;
+      pointer-events: none; font-family: monospace;
+    }
+    body.touch-device.playing #mobile-controls { display: block; }
+    #look-zone {
+      position: absolute; top: 0; right: 0; width: 58%; height: 100%;
+      pointer-events: auto; touch-action: none;
+    }
+    #move-zone {
+      position: absolute; left: max(18px, env(safe-area-inset-left));
+      bottom: max(18px, env(safe-area-inset-bottom));
+      width: 144px; height: 144px; pointer-events: auto; touch-action: none;
+    }
+    #move-base, #move-stick {
+      position: absolute; left: 50%; top: 50%; border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+    #move-base {
+      width: 132px; height: 132px;
+      border: 2px solid rgba(180,240,255,.38);
+      background: radial-gradient(circle, rgba(23,91,110,.18), rgba(3,13,20,.42));
+      box-shadow: inset 0 0 24px rgba(41,196,230,.12);
+    }
+    #move-stick {
+      width: 60px; height: 60px; border: 2px solid rgba(220,250,255,.68);
+      background: rgba(32,149,177,.46); box-shadow: 0 0 18px rgba(49,211,244,.25);
+    }
+    .mobile-action {
+      position: absolute; pointer-events: auto; touch-action: none;
+      display: grid; place-items: center; color: rgba(240,252,255,.95);
+      background: rgba(4,20,29,.55); border: 2px solid rgba(124,224,245,.52);
+      border-radius: 50%; font: 700 12px/1 monospace; letter-spacing: .5px;
+      text-shadow: 0 1px 3px #000; -webkit-tap-highlight-color: transparent;
+    }
+    .mobile-action.active { background: rgba(255,116,29,.62); border-color: rgba(255,185,105,.95); }
+    #fire-btn {
+      right: max(24px, env(safe-area-inset-right));
+      bottom: max(22px, env(safe-area-inset-bottom)); width: 86px; height: 86px;
+      border-color: rgba(255,146,64,.75); background: rgba(114,42,12,.48); font-size: 14px;
+    }
+    #jump-btn { right: max(124px, calc(env(safe-area-inset-right) + 124px)); bottom: max(30px, env(safe-area-inset-bottom)); width: 66px; height: 66px; }
+    #reload-btn { right: max(31px, calc(env(safe-area-inset-right) + 31px)); bottom: max(120px, calc(env(safe-area-inset-bottom) + 120px)); width: 58px; height: 58px; }
+    #sprint-btn { left: max(120px, calc(env(safe-area-inset-left) + 120px)); bottom: max(142px, calc(env(safe-area-inset-bottom) + 142px)); width: 58px; height: 58px; }
+
+    #rotate-device {
+      display: none; position: fixed; inset: 0; z-index: 1000;
+      align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+      padding: 28px; text-align: center; color: #eafcff;
+      background: radial-gradient(circle, #153d4a, #03090e 72%); font-family: monospace;
+    }
+    #rotate-device .phone-icon { font-size: 54px; animation: rotate-phone 1.8s ease-in-out infinite; }
+    #rotate-device strong { font-size: 20px; letter-spacing: 2px; }
+
+    @keyframes rotate-phone {
+      0%, 20% { transform: rotate(0deg); }
+      65%, 100% { transform: rotate(90deg); }
+    }
+
+    @media (pointer: coarse), (hover: none) {
+      #start-screen h1 { font-size: clamp(30px, 8vw, 54px); margin-bottom: 14px; }
+      #start-screen .instruction { font-size: clamp(16px, 3.6vw, 22px); }
+      #start-screen .desktop-controls { display: none; }
+      #start-screen .mobile-controls-copy { display: block; }
+      .game-overlay h1, #game-over-screen h1, #victory-screen h1 { font-size: clamp(36px, 10vw, 64px); margin-bottom: 18px; }
+      .restart-btn { font-size: 18px; padding: 10px 28px; }
+      #health-hud { top: max(8px, env(safe-area-inset-top)); left: max(10px, env(safe-area-inset-left)); padding: 6px 9px; }
+      #hearts-display { font-size: 19px; margin-bottom: 2px; }
+      #health-bar { width: 132px; height: 8px; }
+      #wave-hud { top: max(8px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); font-size: 12px; padding: 7px 9px; }
+      #ammo-hud { right: max(10px, env(safe-area-inset-right)); bottom: max(8px, env(safe-area-inset-bottom)); font-size: 16px; padding: 7px 10px; }
+      body.touch-device.playing #ammo-hud { bottom: max(114px, calc(env(safe-area-inset-bottom) + 114px)); }
+      body.touch-device #crosshair { width: 20px; height: 20px; }
+    }
+
+    .mobile-controls-copy { display: none; }
+    body.touch-device #start-screen .desktop-controls { display: none; }
+    body.touch-device #start-screen .mobile-controls-copy { display: block; }
+    @media (orientation: portrait) {
+      body.touch-device #rotate-device { display: flex; }
+    }
+
+    @media (max-height: 430px) and (orientation: landscape) {
+      #move-zone { width: 124px; height: 124px; bottom: max(8px, env(safe-area-inset-bottom)); }
+      #move-base { width: 112px; height: 112px; }
+      #move-stick { width: 52px; height: 52px; }
+      #fire-btn { width: 74px; height: 74px; bottom: max(12px, env(safe-area-inset-bottom)); }
+      #jump-btn { width: 58px; height: 58px; right: max(108px, calc(env(safe-area-inset-right) + 108px)); bottom: max(17px, env(safe-area-inset-bottom)); }
+      #reload-btn { width: 50px; height: 50px; bottom: max(94px, calc(env(safe-area-inset-bottom) + 94px)); }
+      #sprint-btn { width: 50px; height: 50px; left: max(105px, calc(env(safe-area-inset-left) + 105px)); bottom: max(113px, calc(env(safe-area-inset-bottom) + 113px)); }
+    }
+
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
@@ -176,8 +270,9 @@
   <!-- Start screen overlay -->
   <div id="start-screen" class="game-overlay active">
     <h1>NEON SIEGE</h1>
-    <p class="instruction">Click to deploy</p>
-    <p class="controls">WASD MOVE · SHIFT SPRINT · SPACE JUMP<br>MOUSE FIRE · R RELOAD · ESC PAUSE</p>
+    <p class="instruction"><span class="desktop-controls">Click to deploy</span><span class="mobile-controls-copy">Tap to deploy</span></p>
+    <p class="controls desktop-controls">WASD MOVE · SHIFT SPRINT · SPACE JUMP<br>MOUSE FIRE · R RELOAD · ESC PAUSE</p>
+    <p class="controls mobile-controls-copy">LEFT STICK MOVE · RIGHT SIDE AIM<br>HOLD FIRE · JUMP · RUN · RELOAD</p>
   </div>
 
   <!-- Game over overlay -->
@@ -191,6 +286,25 @@
     <h1>VICTORY!</h1>
     <p style="font-family:monospace;font-size:20px;margin-bottom:30px;">All waves survived</p>
     <button class="restart-btn" id="restart-btn-victory">Play Again</button>
+  </div>
+
+  <!-- Touch controls are activated only on touch-capable devices. -->
+  <div id="mobile-controls" aria-label="Touch controls">
+    <div id="look-zone" aria-label="Drag to aim"></div>
+    <div id="move-zone" aria-label="Movement joystick">
+      <div id="move-base"></div>
+      <div id="move-stick"></div>
+    </div>
+    <button id="sprint-btn" class="mobile-action" aria-label="Sprint">RUN</button>
+    <button id="jump-btn" class="mobile-action" aria-label="Jump">JUMP</button>
+    <button id="reload-btn" class="mobile-action" aria-label="Reload">R</button>
+    <button id="fire-btn" class="mobile-action" aria-label="Fire">FIRE</button>
+  </div>
+
+  <div id="rotate-device" role="status">
+    <div class="phone-icon">▯</div>
+    <strong>ROTATE TO LANDSCAPE</strong>
+    <span>This mission needs a wider view.</span>
   </div>
 
   <!-- Import map — Three.js r168 from jsdelivr CDN -->

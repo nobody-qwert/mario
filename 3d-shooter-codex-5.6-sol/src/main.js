@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { createCamera } from './engine/camera.js';
 import { createRenderer } from './engine/renderer.js';
 import { KEYS, attach as attachInput } from './engine/input.js';
+import { createMobileInput } from './engine/mobile-input.js';
 import { createMap } from './game/map.js';
 import { checkCollision } from './utils/collision.js';
 import { createWeapon } from './game/weapon.js';
@@ -75,6 +76,13 @@ const enemySystem = createEnemySystem(scene, camera, (impactPosition) => {
 }, mapData.bounds);
 weapon.updateAmmo();
 
+const mobileInput = createMobileInput(camera, {
+  onFire: () => fireWeapon(),
+  onReload: () => {
+    if (currentState === GameState.PLAYING) weapon.reload();
+  },
+});
+
 // ===========================================================================
 // Game state manager — MENU → PLAYING → GAME_OVER / VICTORY
 // ===========================================================================
@@ -99,15 +107,18 @@ function setState(newState) {
       startScreen.classList.remove('active');
       gameOverScreen.classList.remove('active');
       victoryScreen.classList.remove('active');
+      mobileInput.enterGameplay();
       break;
     case GameState.GAME_OVER:
       gameOverScreen.classList.add('active');
       document.body.classList.remove('locked');
+      mobileInput.leaveGameplay();
       controls.unlock();
       break;
     case GameState.VICTORY:
       victoryScreen.classList.add('active');
       document.body.classList.remove('locked');
+      mobileInput.leaveGameplay();
       controls.unlock();
       break;
     case GameState.MENU:
@@ -115,6 +126,7 @@ function setState(newState) {
       gameOverScreen.classList.remove('active');
       victoryScreen.classList.remove('active');
       document.body.classList.remove('locked');
+      mobileInput.leaveGameplay();
       break;
   }
 
@@ -221,17 +233,17 @@ startScreen.addEventListener('click', () => {
     setState(GameState.PLAYING);
     initWaveSystem();
     waveSystem.startNextWave(); // Wave 1 spawns automatically (speed multiplier applied internally)
-    controls.lock();
+    if (!mobileInput.enabled) controls.lock();
   }
 });
 
 // ===========================================================================
 // Weapon fire integration — raycast hits passed to enemySystem.applyDamage()
-// The weapon module's fire() method is called exclusively by this mousedown handler.
+// Desktop clicks and the mobile fire control share the same hitscan path.
 // ===========================================================================
-document.addEventListener('mousedown', (e) => {
-  if (e.button !== 0) return;
-  if (currentState !== GameState.PLAYING || !controls.isLocked) return;
+function fireWeapon() {
+  if (currentState !== GameState.PLAYING) return;
+  if (!mobileInput.enabled && !controls.isLocked) return;
 
   // Fire weapon — handles ammo decrement, muzzle flash, and returns raycast data
   const fireResult = weapon.fire();
@@ -251,6 +263,11 @@ document.addEventListener('mousedown', (e) => {
     const tracerEnd = fireResult.origin.clone().addScaledVector(fireResult.direction, 45);
     particleSystem.spawnTracer(fireResult.origin, tracerEnd);
   }
+}
+
+document.addEventListener('mousedown', (e) => {
+  if (e.button !== 0 || mobileInput.enabled) return;
+  fireWeapon();
 });
 
 document.addEventListener('keydown', (event) => {
@@ -276,7 +293,7 @@ controls.addEventListener('unlock', () => {
 });
 
 container.addEventListener('click', () => {
-  if (currentState === GameState.PLAYING && !controls.isLocked) controls.lock();
+  if (!mobileInput.enabled && currentState === GameState.PLAYING && !controls.isLocked) controls.lock();
 });
 
 // ===========================================================================
@@ -302,10 +319,16 @@ function animate() {
   const deltaTime = Math.min((now - prevTime) / 1000, 0.1); // cap at 100ms to avoid spiral of death
   prevTime = now;
 
-  if (currentState === GameState.PLAYING && controls.isLocked) {
+  // Pause safely behind the rotate-device overlay if a phone is turned upright.
+  const gameplayInputActive = mobileInput.enabled
+    ? mobileInput.isLandscape()
+    : controls.isLocked;
+  if (currentState === GameState.PLAYING && gameplayInputActive) {
+    mobileInput.update(deltaTime);
     updatePlayer(deltaTime);
     enemySystem.update(deltaTime);
-    const movementAmount = KEYS.w || KEYS.a || KEYS.s || KEYS.d ? 1 : 0;
+    const movementAmount = KEYS.w || KEYS.a || KEYS.s || KEYS.d
+      || Math.abs(mobileInput.state.moveX) > 0.05 || Math.abs(mobileInput.state.moveY) > 0.05 ? 1 : 0;
     weapon.update(deltaTime, movementAmount);
     checkWaveCompletion();
     checkGameStateTransitions();
@@ -326,12 +349,14 @@ function animate() {
 // Player movement — WASD + collision detection + jump + sprint
 // ===========================================================================
 function updatePlayer(deltaTime) {
-  const directionX = (KEYS.d ? 1 : 0) - (KEYS.a ? 1 : 0); // right - left
-  const directionZ = (KEYS.w ? 1 : 0) - (KEYS.s ? 1 : 0); // forward - back
+  const keyboardX = (KEYS.d ? 1 : 0) - (KEYS.a ? 1 : 0);
+  const keyboardZ = (KEYS.w ? 1 : 0) - (KEYS.s ? 1 : 0);
+  const directionX = Math.max(-1, Math.min(1, keyboardX + mobileInput.state.moveX));
+  const directionZ = Math.max(-1, Math.min(1, keyboardZ + mobileInput.state.moveY));
 
   // Sprint: Shift key increases movement speed by 1.5×
   let currentSpeed = MOVE_SPEED;
-  if (KEYS.ShiftLeft || KEYS.ShiftRight) {
+  if (KEYS.ShiftLeft || KEYS.ShiftRight || mobileInput.state.sprint) {
     currentSpeed *= SPRINT_MULTIPLIER;
   }
 
@@ -384,7 +409,7 @@ function updatePlayer(deltaTime) {
 
   // --- Jump physics (Space key) with gravity ---
   let finalY = playerPos.y;
-  if (KEYS.Space && !isJumping) {
+  if ((KEYS.Space || mobileInput.state.jump) && !isJumping) {
     isJumping = true;
     verticalVelocity = JUMP_VELOCITY;
   }

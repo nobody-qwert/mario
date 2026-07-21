@@ -31,7 +31,7 @@ class Player extends Entity {
         // Tighter collision hitbox (smaller than visual sprite)
         this.hitboxPadding = { left: 5, right: 5, top: 4, bottom: 4 };
         this.speed = 225;
-        this.jumpForce = -590;
+        this.jumpForce = -649;
         this.gravity = 1350;
         this.grounded = false;
         this.coyoteTimer = 0;

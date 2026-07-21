@@ -50,7 +50,17 @@ function parseLevel(rows, name, bg, groundColor, blockColor) {
                     const poleCol = col;
                     const flagTopRow = row;
 
-                    for (let r = flagTopRow + 1; r < rows.length - 1; r++) {
+                    // Find the actual ground row at the flag pole column
+                    let groundRow = rows.length - 1;
+                    for (let r = flagTopRow + 1; r < rows.length; r++) {
+                        const ch = rows[r][poleCol];
+                        if (ch === '#' || ch === 'p' || ch === 'P' || ch === 'X') {
+                            groundRow = r;
+                            break;
+                        }
+                    }
+
+                    for (let r = flagTopRow + 1; r <= groundRow; r++) {
                         solidBlocks.push({ 
                             x: poleCol * TILE + 12, 
                             y: r * TILE, 
@@ -60,11 +70,9 @@ function parseLevel(rows, name, bg, groundColor, blockColor) {
                     }
 
                     if (!flagPoleData) {
-                        const totalHeight = (rows.length - flagTopRow - 1) * TILE;
+                        const totalHeight = (groundRow - flagTopRow + 1) * TILE;
                         flagPoleData = { 
                             x: poleCol * TILE + 12, 
-                            // The map character marks the actual top of the pole.
-                            // Subtracting seven tiles put the trigger far above Mario.
                             y: flagTopRow * TILE,
                             height: totalHeight 
                         };

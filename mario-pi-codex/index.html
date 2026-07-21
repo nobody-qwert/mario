@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>🍄 Super Mario Emoji</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+    <div id="hud">
+      <div id="hud-score">MARIO<br><span id="score">000000</span></div>
+      <div id="hud-coins">🪙×<span id="coins">00</span></div>
+      <div id="hud-world">WORLD<br><span id="world">1-1</span></div>
+      <div id="hud-time">TIME<br><span id="time">400</span></div>
+      <div id="hud-lives">🏃×<span id="lives">3</span></div>
+    </div>
+    <div id="overlay" class="hidden">
+      <div id="overlay-title"></div>
+      <div id="overlay-subtitle"></div>
+      <div id="overlay-action"></div>
+    </div>
+  </div>
+  <script src="js/constants.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/collision.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/hud.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

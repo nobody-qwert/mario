@@ -1,40 +1,59 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <title>🍄 Super Mario Emoji</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Small tools, learning projects, maps, and games by nobody-qwert.">
+  <title>nobody-qwert / pages</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="game-container">
-    <canvas id="game-canvas"></canvas>
-    <div id="hud">
-      <div id="hud-score">MARIO<br><span id="score">000000</span></div>
-      <div id="hud-coins">🪙×<span id="coins">00</span></div>
-      <div id="hud-world">WORLD<br><span id="world">1-1</span></div>
-      <div id="hud-time">TIME<br><span id="time">400</span></div>
-      <div id="hud-lives">🏃×<span id="lives">3</span></div>
+  <main>
+    <div class="project-grid">
+      <section aria-labelledby="ai-experiments">
+        <h2 id="ai-experiments">AI &amp; experiments</h2>
+        <ul>
+          <li><a href="https://nobody-qwert.github.io/ai_learning/">AI learning</a> — AI learning hub</li>
+          <li><a href="mario-opencode/">mario / opencode</a></li>
+          <li><a href="mario-pi-codex/">mario / pi codex</a></li>
+          <li><a href="3d-shooter-codex-5.6-sol/">3D shooter / codex 5.6 sol</a></li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="software-tools">
+        <h2 id="software-tools">software tools</h2>
+        <ul>
+          <li><a href="https://nobody-qwert.github.io/stack-flow/">stack flow</a> — visual data-flow designer</li>
+          <li><a href="https://nobody-qwert.github.io/marmaid_editor/">mermaid editor</a> — write and preview Mermaid diagrams</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="statistics-finance">
+        <h2 id="statistics-finance">statistics &amp; finance</h2>
+        <ul>
+          <li><a href="https://nobody-qwert.github.io/event_sim/">event sim</a> — risk and reward analyzer</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="health-fitness">
+        <h2 id="health-fitness">health &amp; fitness</h2>
+        <ul>
+          <li><a href="https://nobody-qwert.github.io/plants_medicine/">plants medicine</a> — plant medicine database</li>
+          <li><a href="https://nobody-qwert.github.io/training/">training</a> — isometrics and workout planner</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="maps-land">
+        <h2 id="maps-land">maps &amp; land</h2>
+        <ul>
+          <li><a href="https://nobody-qwert.github.io/field-portfolio/">field portfolio</a> — cadastral fields map</li>
+        </ul>
+      </section>
     </div>
-    <div id="overlay" class="hidden">
-      <div id="overlay-title"></div>
-      <div id="overlay-subtitle"></div>
-      <div id="overlay-action"></div>
-    </div>
-  </div>
-  <script src="js/constants.js"></script>
-  <script src="js/levels.js"></script>
-  <script src="js/input.js"></script>
-  <script src="js/camera.js"></script>
-  <script src="js/world.js"></script>
-  <script src="js/entities.js"></script>
-  <script src="js/collision.js"></script>
-  <script src="js/sound.js"></script>
-  <script src="js/player.js"></script>
-  <script src="js/hud.js"></script>
-  <script src="js/render.js"></script>
-  <script src="js/game.js"></script>
+
+    <a class="hero" href="img/skill.png" aria-label="Open The Time Axiom infographic at full size">
+      <img src="img/skill.png" width="1536" height="1024" alt="The Time Axiom: divide your time to build competence across five domains">
+    </a>
+  </main>
 </body>
 </html>

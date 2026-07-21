@@ -1,0 +1,84 @@
+:root {
+  color-scheme: light dark;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+body {
+  margin: 0;
+  color: light-dark(#111, #eee);
+  background: light-dark(#fff, #111);
+}
+
+main {
+  width: min(100% - 2rem, 920px);
+  margin: 2rem auto;
+}
+
+.hero {
+  display: block;
+  width: 100%;
+  margin: 1.75rem auto 0;
+  line-height: 0;
+  cursor: zoom-in;
+}
+
+.hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.75rem 2.5rem;
+}
+
+h2 {
+  margin-block: 0 0.75rem;
+}
+
+h2 {
+  font-size: 1.125rem;
+}
+
+ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+li + li {
+  margin-top: 0.35rem;
+}
+
+a {
+  color: light-dark(#0645ad, #8ab4f8);
+}
+
+a:hover,
+a:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hero img {
+    filter: invert(0.93);
+  }
+}
+
+@media (max-width: 700px) {
+  main {
+    margin-block: 1rem;
+  }
+
+  .project-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  li {
+    margin-bottom: 0.7rem;
+  }
+}

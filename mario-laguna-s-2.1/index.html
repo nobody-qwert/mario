@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Mario Bros. Web</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/hud.css">
+    <link rel="stylesheet" href="styles/game.css">
+    <!-- Simple, clean page for GitHub Pages -->
+    <meta name="description" content="A modular Super Mario-style platformer built with vanilla JS and Web Audio API">
+    <!-- Favicon -->
+    <link rel="icon" href="data:,">
+</head>
+<body>
+    <!-- Simple splash / menu overlay -->
+    <div id="splash" class="splash">
+        <div class="splash-content">
+            <h1>🍄 Super Mario Bros. Web</h1>
+            <p class="subtitle">A modular platformer in pure HTML/CSS/JS</p>
+            <div class="instructions">
+                <p><kbd>← →</kbd> Move &nbsp;&nbsp; <kbd>Space / W / ↑</kbd> Jump &nbsp;&nbsp; <kbd>Esc</kbd> Pause</p>
+                <p>Collect 🪙 coins and reach the 🚩 flag to complete each level!</p>
+            </div>
+            <button id="start-btn" class="btn">Start Game</button>
+            <p class="version">v1.0.0</p>
+        </div>
+    </div>
+
+    <!-- HUD overlay (lives, coins, level) -->
+    <div id="hud" class="hud hidden">
+        <div class="hud-left">
+            <span class="hud-item">🌟 <span id="lives">3</span></span>
+            <span class="hud-item">🪙 <span id="coins">0</span></span>
+        </div>
+        <div class="hud-center">
+            <span class="hud-item">Level <span id="level">1</span></span>
+        </div>
+        <div class="hud-right">
+            <span class="hud-item">⏱ <span id="timer">0:00</span></span>
+        </div>
+    </div>
+
+    <!-- Pause menu -->
+    <div id="pause-menu" class="pause-menu hidden">
+        <h2>⏸ Paused</h2>
+        <button id="resume-btn" class="btn">Resume</button>
+        <button id="menu-btn" class="btn">Main Menu</button>
+    </div>
+
+    <!-- Game Over overlay -->
+    <div id="game-over" class="overlay hidden">
+        <div class="overlay-content">
+            <h2>💀 Game Over</h2>
+            <p id="final-message"></p>
+            <button id="restart-btn" class="btn">Restart</button>
+            <button id="menu-btn-2" class="btn">Main Menu</button>
+        </div>
+    </div>
+
+    <!-- Victory overlay -->
+    <div id="victory" class="overlay hidden">
+        <div class="overlay-content">
+            <h2>🎉 Level Complete!</h2>
+            <p id="victory-message"></p>
+            <button id="next-level-btn" class="btn">Next Level</button>
+            <button id="menu-btn-3" class="btn">Main Menu</button>
+        </div>
+    </div>
+    <!-- Canvas element -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Audio context (unlocked on first interaction) -->
+    <audio id="audio-lock" preload="none"></audio>
+
+    <!-- JS Modules -->
+    <script type="module" src="js/config.js"></script>
+    <script type="module" src="js/utils.js"></script>
+    <script type="module" src="js/physics.js"></script>
+    <script type="module" src="js/sound.js"></script>
+    <script type="module" src="js/input.js"></script>
+    <script type="module" src="js/entities/mario.js"></script>
+    <script type="module" src="js/entities/goomba.js"></script>
+    <script type="module" src="js/entities/platform.js"></script>
+
+    <script type="module" src="js/levels/level1.js"></script>
+    <script type="module" src="js/levels/level2.js"></script>
+    <script type="module" src="js/levels/level3.js"></script>
+    <script type="module" src="js/levels/index.js"></script>
+    <script type="module" src="js/renderer.js"></script>
+    <script type="module" src="js/game.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

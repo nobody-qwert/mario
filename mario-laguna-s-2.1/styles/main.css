@@ -1,0 +1,184 @@
+/* ========================================
+   Super Mario Bros. Web — Main Styles
+   Simple, clean styles for GitHub Pages
+   ======================================== */
+
+:root {
+    --bg-color: #000;
+    --text-color: #fff;
+    --accent-color: #ffcc00;
+    --danger-color: #ff4d4d;
+    --btn-bg: #d32f2f;
+    --btn-hover: #b71c1c;
+    --btn-text: #fff;
+    --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-mono: 'Courier New', Courier, monospace;
+}
+
+/* Reset & base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Simple splash screen */
+.splash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    transition: opacity 0.5s ease;
+}
+
+.splash.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.splash-content {
+    text-align: center;
+    max-width: 600px;
+    padding: 40px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    border: 3px solid var(--accent-color);
+    box-shadow: 0 0 30px rgba(255, 204, 0, 0.3);
+}
+
+.splash h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    text-shadow: 3px 3px 0 #d32f2f;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #ccc;
+    margin-bottom: 30px;
+}
+
+.instructions {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: left;
+    line-height: 1.8;
+    font-size: 0.9rem;
+}
+
+.instructions kbd {
+    display: inline-block;
+    background: #333;
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    border: 1px solid #555;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    margin: 0 3px;
+    min-width: 36px;
+    text-align: center;
+}
+
+.version {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* Simple buttons */
+.btn {
+    display: inline-block;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: none;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 5px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 0 #b71c1c;
+}
+
+.btn:hover {
+    background: var(--btn-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #b71c1c;
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 0 #b71c1c;
+}
+
+/* Simple overlay styles */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.overlay-content {
+    text-align: center;
+    max-width: 500px;
+    padding: 40px;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 20px;
+    border: 3px solid var(--accent-color);
+    box-shadow: 0 0 30px rgba(255, 204, 0, 0.3);
+}
+
+.overlay h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-shadow: 3px 3px 0 #d32f2f;
+}
+
+.hidden {
+    display: none !important;
+}
